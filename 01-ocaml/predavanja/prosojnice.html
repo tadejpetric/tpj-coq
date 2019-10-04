@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>OCaml</title>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../pomozno/prosojnice.css" />
+</head>
+<body>
+<textarea id="source">
+
+class: center, middle
+
+# OCaml
+
+## Teorija programskih jezikov
+
+---
+
+
+background-image: url(slike/lrg.jpg)
+background-size: auto 90%
+
+---
+
+
+### Naš prvi program v OCamlu
+
+.terminal[```
+# let odgovor = min 8 7 * 6;;
+val odgovor : int = 42
+```]
+
+* vrednosti definiramo z `let`
+* izraze v ukazni vrstici zaključimo z `;;`
+* poleg vrednosti OCaml izračuna tudi tip programa
+* argumente funkcij lahko pišemo brez oklepajev
+* uporaba (_aplikacija_) funkcij ima najvišjo prioriteto
+
+---
+
+### Z `let ... in ...` pišemo lokalne definicije
+
+.terminal[```
+# let odgovor =
+    let prvi_delni_izracun = min 8 7 in
+    let drugi_delni_izracun = 6 in
+    prvi_delni_izracun * drugi_delni_izracun;;
+val odgovor : int = 42
+
+# prvi_delni_izracun;;
+  ^^^^^^^^^^^^^^^^^^
+Error: Unbound value prvi_delni_izracun
+```]
+
+---
+
+### Z `and` podamo več lokalnih definicij hkrati
+
+.terminal[```
+# let odgovor =
+    let prvi_delni_izracun = min 8 7
+    and drugi_delni_izracun = 6
+    in
+    prvi_delni_izracun * drugi_delni_izracun;;
+val odgovor : int = 42
+```]
+
+---
+
+### Programe običajno shranjujemo v datoteke
+
+odgovor.ml
+
+.source[```
+let odgovor = min 8 7 * 6
+
+let se_boljsi_odgovor = odgovor + 1
+```]
+
+- - -
+
+.terminal[```
+# #use "odgovor.ml";;
+val odgovor : int = 42
+val se_boljsi_odgovor : int = 43
+
+# let najboljsi_odgovor = se_boljsi_odgovor + 1;;
+val najboljsi_odgovor : int = 44
+```]
+
+---
+
+### Cela števila imajo tip `int`
+
+.terminal[```
+# 12 * (34 + 67) - 89;;
+- : int = 1123
+
+# 22 / 7;;
+- : int = 3
+
+# 22 mod 7;;
+- : int = 1
+
+# succ 5 * pred 8;;
+- : int = 42
+```]
+
+---
+
+### Števila s plavajočo vejico imajo tip `float`
+
+.terminal[```
+# 12.0 *. (34.0 +. 67.0) -. 89.0;;
+- : float = 1123.
+
+# 22. /. 7.;;
+- : float = 3.14285714285714279
+
+# let pi = 4. *. atan 1.;;
+val pi : float = 3.14159265358979312
+
+# cos pi;;
+- : float = -1.
+```]
+
+---
+
+### OCaml **strogo** loči med `int` in `float`
+
+.terminal[```
+# 2 * pi;;
+      ^^
+Error: This expression has type float but an
+  expression was expected of type int
+```]
+
+.terminal[```
+# 2. * pi;;
+  ^^
+Error: This expression has type float but an
+  expression was expected of type int
+```]
+
+.terminal[```
+# 2. *. pi;;
+- : float = 6.28318530717958623
+```]
+
+---
+
+### Logične vrednosti imajo tip `bool`
+
+.terminal[```
+# false && not (false || true);;
+- : bool = false
+
+# 3 < 5 || 3 >= 5;;
+- : bool = true
+
+# if 3 <> 5 then 10 else 20;;
+- : int = 10
+
+# (if 3 = 4 then cos else sin) pi;;
+- : float = 1.22464679914735321e-16
+```]
+
+---
+
+### Nizi imajo tip `string`
+
+.terminal[```
+# "TPJ 2019/" ^ string_of_int 20;;
+- : string = "TPJ 2019/20"
+
+# max "abcd" "efg";;
+- : string = "efg"
+```]
+
+### Znaki imajo tip `char`
+
+.terminal[```
+# 'a';;
+- : char = 'a'
+```]
+
+---
+
+### Funkcije imajo tip oblike <code>tip<sub>arg</sub> -> tip<sub>rez</sub></code>
+
+.terminal[```
+# truncate;;
+- : float -> int = <fun>
+
+# let kvadriraj n = n * n;;
+val kvadriraj : int -> int = <fun>
+
+# let zmnozi x y = x * y;;
+val zmnozi : int -> int -> int = <fun>
+
+# let dvakrat_na_nic f = f (f 0);;
+val dvakrat_na_nic : (int -> int) -> int = <fun>
+
+# fun x -> 2 * x + 1;;
+- : int -> int = <fun>
+```]
+
+---
+
+### Funkcijo po kosih definiramo z `match`
+
+.bad-example[```
+let pozdravi ime =
+  if ime = "Matija" then
+    "Dober dan, gospod predavatelj!"
+  else if ime = "Žiga" then
+    "Oj!"
+  else
+    "Dober dan, " ^ ime ^ "!"
+```]
+
+.good-example[```
+let pozdravi ime =
+  match ime with
+  | "Matija" -> "Dober dan, gospod predavatelj!"
+  | "Žiga" -> "Oj!"
+  | _ -> "Dober dan, " ^ ime ^ "!"
+```]
+
+---
+
+### Za funkcije, ki takoj izvedejo `match`, raje uporabimo `function`
+
+
+.bad-example[```
+let pozdravi ime =
+  match ime with
+  | "Matija" -> "Dober dan, gospod predavatelj!"
+  | "Žiga" -> "Oj!"
+  | _ -> "Dober dan, " ^ ime ^ "!"
+```]
+
+.good-example[```
+let pozdravi = function
+  | "Matija" -> "Dober dan, gospod predavatelj!"
+  | "Žiga" -> "Oj!"
+  | ime -> "Dober dan, " ^ ime ^ "!"
+```]
+
+---
+
+### Vrstni red vzorcev je pomemben
+
+
+.bad-example[```
+let pozdravi = function
+  | ime -> "Dober dan, " ^ ime ^ "!"
+  | "Matija" -> "Dober dan, gospod predavatelj!"
+    ^^^^^^^^
+Warning 11: this match case is unused.
+```]
+
+.terminal[```
+# pozdravi "Matija";;
+- : string = "Dober dan, Matija!"
+```]
+
+---
+
+### Zajeti moramo vse vzorce
+
+.bad-example[```
+let pozdravi = function
+  | "Matija" -> "Dober dan, gospod predavatelj!"
+  | "Žiga" -> "Oj!"
+
+Warning 8: this pattern-matching is not
+exhaustive. Here is an example of a value that
+is not matched: ""
+```]
+
+.terminal[```
+# pozdravi "naključni študent";;
+Exception: Match_failure ("//toplevel//", 1, 15).
+```]
+
+---
+
+### Rekurzivne funkcije definiramo z `let rec`
+
+.source[```
+let rec fakulteta = function
+  | 0 -> 1
+  | n -> n * fakulteta (n - 1)
+```]
+
+.bad-example[```
+let rec fib = function
+  | 0 -> 0
+  | 1 -> 1
+  | n -> fib (n - 1) + fib (n - 2)
+```]
+
+.good-example[```
+let hitri_fib n =
+  let rec aux n a b =
+    if n = 0 then a else aux (n - 1) b (a + b)
+  in aux n 0 1
+```]
+
+---
+
+### Hkrati lahko definiramo več rekurzivnih funkcij 
+
+.source[```
+let rec je_sodo = function
+  | 0 -> true
+  | n -> je_liho (n - 1)
+
+and je_liho = function
+  | 0 -> false
+  | n -> je_sodo (n - 1)
+```]
+
+---
+
+### Nabori imajo tip <code>tip<sub>1</sub> \* tip<sub>2</sub> \* … \* tip<sub>n</sub></code>
+
+.terminal[```
+# (1, 2 < 3, cos pi);;
+- : int * bool * float = (1, true, -1.)
+
+# (1, (2, 3));;
+- : int * (int * int) = (1, (2, 3))
+```]
+
+### Prazen nabor ima tip `unit`
+
+.terminal[```
+# ();;
+- : unit = ()
+```]
+
+---
+
+### Nabore lahko razstavljamo z vzorci
+
+.terminal[```
+# let (x, y) = (1, "bla");;
+val x : int = 1
+val y : string = "bla"
+```]
+
+.bad-example[```
+let razdalja koord1 koord2 =
+  let dx = fst koord1 -. fst koord2
+  and dy = snd koord1 -. snd koord2
+  in
+  sqrt (dx ** 2. +. dy ** 2.)
+```]
+
+.good-example[```
+let razdalja (x1, y1) (x2, y2) =
+  sqrt ((x1 -. x2) ** 2. +. (y1 -. y2) ** 2.)
+```]
+
+---
+
+### Seznami imajo tip <code>tip<sub>el</sub> list</code>
+
+.terminal[```
+# [1; 2; 3; 4];;
+- : int list = [1; 2; 3; 4]
+
+# ['a'; 'b'; 'c'; 'd'];;
+- : char list = ['a'; 'b'; 'c'; 'd']
+
+# 1 :: 2 :: [3; 4];;
+- : int list = [1; 2; 3; 4]
+
+# "a" :: "b" :: ["c"; "d"];;
+- : string list = ["a"; "b"; "c"; "d"]
+
+# [1; 2; 3] @ [4; 5; 6];;
+- : int list = [1; 2; 3; 4; 5; 6]
+```]
+
+---
+
+### Tudi sezname razstavljamo z vzorci
+
+.source[```
+let citiraj_knjigo avtorji naslov =
+  match avtorji with
+  | [] -> naslov
+  | [avtor] -> avtor ^ ": " ^ naslov
+  | prvi :: _ -> prvi ^ " in ostali: " ^ naslov
+```]
+
+.terminal[```
+# citiraj_knjigo [] "Skrivnosti podzemlja";;
+- : string = "Skrivnosti podzemlja"
+# citiraj_knjigo ["Kos"; "Golob"] "Fizika 1";;
+- : string = "Kos in ostali: Fizika 1"
+```]
+
+### Pozor: `@` **ne sme** nastopati v vzorcih
+
+---
+
+### Vzorce lahko tudi gnezdimo
+
+.source[```
+let za_lase_privlecena_funkcija = function
+  | [] -> 0
+  | [(x, _); (y, z)] -> x + y + z
+  | ((_, x) :: _) -> 3 * x
+```]
+
+.terminal[```
+# za_lase_privlecena_funkcija [];;
+- : int = 0
+# za_lase_privlecena_funkcija [(1, 2)];;
+- : int = 6
+# za_lase_privlecena_funkcija [(1, 2); (3, 4)];;
+- : int = 8
+```]
+
+---
+
+### Kaj je tip funkcije `@`?
+
+.terminal[```
+# [true; false] @ [false; true];;
+- : bool list = [true; false; false; true]
+# [1; 2] @ [3; 4; 5];;
+- : int list = [1; 2; 3; 4; 5]
+```]
+
+--
+
+.center[```
+bool list -> bool list -> bool list
+int list -> int list -> int list
+int list list -> int list list -> int list list
+...
+```]
+
+--
+
+.center[```
+∀α. α list -> α list -> α list
+```]
+
+--
+
+.center[```
+'a list -> 'a list -> 'a list
+```]
+
+---
+
+### Vrednostim, ki imajo v tipih spremenljivke, pravimo **parametrično polimorfne**
+
+.terminal[```
+# (@);;
+- : 'a list -> 'a list -> 'a list = <fun>
+
+# fst;;
+- : 'a * 'b -> 'a = <fun>
+
+# ignore;;
+- : 'a -> unit = <fun>
+
+# [];;
+- : 'a list = []
+```]
+
+---
+
+class: question, center, middle
+
+## `vsota`, `dolzina`, `preslikaj`
+
+.terminal.left[```
+# vsota [10; 20; 30];;
+- : int = 60
+
+# dolzina [10; 20; 30];;
+- : int = 3
+
+# preslikaj succ [10; 20; 30];;
+- : int list = [11; 21; 31]
+
+# preslikaj kvadriraj [10; 20; 30];;
+- : int list = [100; 400; 900]
+```]
+
+---
+
+### Nekatere funkcije za argumente sprejemajo druge funkcije
+
+.terminal[```
+# let trikrat f x = f (f (f x));;
+val trikrat : ('a -> 'a) -> 'a -> 'a = <fun>
+
+# trikrat succ 39;;
+- : int = 42
+
+# trikrat sqrt 16.;;
+- : float = 1.41421356237309515
+```]
+
+### Takim funkcijam pravimo, da so **višjega reda**
+
+---
+
+### Anonimne funkcije pišemo kot `fun x -> ...`
+
+.terminal[```
+# let moja_funkcija x = 2 * x + 1;;
+val moja_funkcija : int -> int = <fun>
+
+# trikrat moja_funkcija 1;;
+- : int = 15
+
+# trikrat (fun x -> 2 * x + 1) 1;;
+- : int = 15
+
+# let moja_funkcija' = fun x -> 2 * x + 1;;
+val moja_funkcija' : int -> int = <fun>
+
+# (fun f (x, y) -> f x * f y) succ (5, 6);;
+- : int = 42
+```]
+
+---
+
+### Če funkciji dveh argumentov podamo enega,<br>ne dobimo napake, temveč funkcijo
+
+.source[```
+let zmnozi x y = x * y
+```]
+
+.terminal[<pre><code class="ocaml remark-code hljs"># zmnozi 2 3;;
+- : int = 6
+
+# zmnozi 2;;
+.spoiler[\- : int -> int = &amp;lt;fun&amp;gt;]
+</code></pre>]
+
+---
+
+### Kakšno funkcijo dobimo?
+
+.terminal[```
+# let f = zmnozi 2;;
+val f : int -> int = <fun>
+
+# f 3;;
+- : int = 6
+# f 10;;
+- : int = 20
+```]
+
+.terminal[```
+# (zmnozi 2) 3;;
+- : int = 6      (* to je isto kot zmnozi 2 3 *)
+# (zmnozi 2) 10;;
+- : int = 20    (* to je isto kot zmnozi 2 10 *)
+```]
+
+---
+
+class: center, middle
+
+### funkcija *dveh* argumentov <br>=<br> funkcija *enega* argumenta (prvega), ki vrne<br> funkcijo *enega* argumenta (drugega)
+
+- - -
+
+### `f x y` = `(f x) y`
+
+### `A -> B -> C` = `A -> (B -> C)`.
+
+### `fun x y -> ...` = `fun x -> fun y -> ...`
+
+- - -
+
+### Takim funkcijam rečemo **curryirane** ([H. Curry](https://en.wikipedia.org/wiki/Haskell_Curry))
+
+---
+
+class: center, middle, question
+
+### `f x y z` = .spoiler[`((f x) y) z`]
+
+### `A -> B -> C -> D` = .spoiler[`A -> (B -> (C -> D))`]
+
+### aplikacija je .spoiler[*levo*] asociativna
+
+### `->` je .spoiler[*desno*] asociativna
+
+---
+
+### Zakaj ne uporabimo funkcije, ki sprejme par?
+
+.terminal[```
+# let zmnozi x y = x * y;;
+val zmnozi : int -> int -> int = <fun>
+# zmnozi 2 3;;
+- : int = 6
+# zmnozi 2 10;;
+- : int = 20
+```]
+
+.terminal[```
+# let zmnozi' (x, y) = x * y;;
+val zmnozi' : int * int -> int = <fun>
+# zmnozi' (2, 3);;
+- : int = 6
+# zmnozi' (2, 10);;
+- : int = 20
+```]
+
+---
+
+### Uporaba delno uporabljenih funkcij
+
+.terminal[```
+# preslikaj (zmnozi 2) [10; 20; 30];;
+- : int list = [20; 40; 60]
+
+# preslikaj ((+) 5) [10; 20; 30];;
+- : int list = [15; 25; 35]
+
+# preslikaj (preslikaj succ) [[10; 20]; [30]];;
+- : int list list = [[11; 21]; [31]]
+```]
+
+---
+
+### Tipa `A * B -> C` in `A -> B -> C` sta izomorfna
+
+.terminal[```
+# let curry f = fun x y -> f (x, y);;
+val curry :
+  ('a * 'b -> 'c) -> 'a -> 'b -> 'c = <fun>
+
+# let uncurry g = fun (x, y) -> g x y;;
+val uncurry :
+  ('a -> 'b -> 'c) -> 'a * 'b -> 'c = <fun>```]
+
+### $$C^{A \times B} \cong (C^B)^A$$
+
+### $$curry \colon C^{A \times B} \to (C^B)^A, uncurry \colon (C^B)^A \to C^{A \times B}$$
+
+### Postopku pravimo **curryiranje**
+
+---
+
+### Vgrajene funkcije kličemo z `Modul.funkcija`
+
+.terminal[```
+# List.map String.length ["Ti"; "si"; "konj"];;
+- : int list = [2; 2; 4]
+```]
+
+- osnovni modul [`Pervasives`](http://caml.inria.fr/pub/docs/manual-ocaml/libref/Pervasives.html)
+- modul za nize [`String`](http://caml.inria.fr/pub/docs/manual-ocaml/libref/String.html)
+- modul za sezname [`List`](http://caml.inria.fr/pub/docs/manual-ocaml/libref/List.html)
+- seznam [vseh modulov](http://caml.inria.fr/pub/docs/manual-ocaml/libref/) v standardni knjižnici
+
+---
+
+### Za tipe si lahko definiramo okrajšave
+
+.source[```
+type r3 = float * float * float
+```]
+
+### Tipi lahko vsebujejo tudi parametre
+
+.source[```
+type 'a zaporedje = int -> 'a
+
+type ('k, 'v) slovar = ('k * 'v) list
+```]
+
+---
+
+### **Zapisni tip** podamo z zahtevanimi polji
+
+.source[```
+type kompleksno = {re : float; im : float}
+type polarno = {kot : float; radij : float}
+```]
+
+.terminal[```
+# let i = {re = 0.0; im = 1.0};;
+val i : kompleksno = {re = 0.; im = 1.}
+
+# let abs z = sqrt (z.re ** 2. +. z.im ** 2.);;
+val abs : kompleksno -> float = <fun>
+```]
+
+### .center[zapisi = nabori z imenovanimi polji<br>zapisni tipi = produkti z imenovanimi faktorji
+]
+
+---
+
+### **Vsoto** podamo z možnimi **variantami**
+
+.source[```
+type barva = Rdeca | Zelena | Modra
+```]
+
+.terminal[```
+# [Rdeca; Zelena; Zelena];;
+- : barva list = [Rdeca; Zelena; Zelena]
+
+# [Rdeca; Zelena; Zelena; Rumena];;
+                          ^^^^^^
+Error: This variant expression is expected to
+have type barva. The constructor Rumena does not
+belong to type barva
+```]
+
+### `Rdeca`, `Zelena`, `Modra` so **konstruktorji**
+
+---
+
+### Konstruktorji lahko sprejmejo tudi argumente
+
+.source[```
+type geometrijski_objekt =
+  | Tocka
+  | Krog of float
+  | Pravokotnik of float * float
+```]
+
+.terminal[```
+# [Tocka; Pravokotnik (1., 2.); Tocka; Krog 3.];;
+- : geometrijski_objekt list = ...
+```]
+
+---
+
+### Funkcije na vsotah podamo po kosih
+
+.source[```
+type geometrijski_objekt =
+  | Tocka
+  | Krog of float
+  | Pravokotnik of float * float
+```]
+
+.source[```
+let povrsina = function
+  | Tocka -> 0.
+  | Krog r -> 3.14 *. r ** 2.
+  | Pravokotnik (v, s) -> v *. s
+```]
+
+### `match`, `function`, vzorci, … so **dekonstruktorji**
+
+---
+
+class: question, center, middle
+
+## Zakaj vsotam pravimo vsote?
+
+---
+
+### Rekurzivnim vsotam/zapisom pogosto pravimo **algebrajski** oziroma **induktivni** tipi
+
+.source[```
+type izraz =
+  | Stevilo of int
+  | Plus of izraz * izraz
+  | Minus of izraz
+  | Krat of izraz * izraz
+```]
+
+### $$-(5 \times (2 + 7))$$
+
+.source[```
+Minus (
+  Krat (Stevilo 5, Plus (Stevilo 2, Stevilo 7))
+)
+```]
+
+---
+
+class: question, center, middle
+
+## `izracunaj`
+
+.terminal.left[```
+# let x = Plus (Stevilo 2, Stevilo 4);;
+val x : izraz = Plus (Stevilo 2, Stevilo 4)
+
+# let y = Minus (Stevilo 6);;
+val y : izraz = Minus (Stevilo 6)
+
+# izracunaj (Plus (x, Krat (y, y)));;
+- : int = 42
+```]
+
+---
+
+### Datoteka `.ml` ima lahko ustrezno signaturo v datoteke `.mli`, ki vsebuje podatke o tipih
+
+`prva.ml`
+.source[```
+let pomozni_racun = 3 + 3
+let odgovor = pomozni_racun * succ pomozni_racun
+```]
+
+`prva.mli`
+.source[```
+val odgovor : int
+```]
+
+---
+
+### Signatura lahko **skrije pomožne vrednosti**
+
+---
+
+### Signatura lahko **skrije definicije tipov**
+
+</textarea>
+<script src="../../pomozno/prosojnice.js"></script>
+</body>
+</html>
