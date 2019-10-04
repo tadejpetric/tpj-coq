@@ -708,6 +708,29 @@ val abs : kompleksno -> float = <fun>
 
 ---
 
+### Datoteka `.ml` ima lahko ustrezno signaturo v datoteke `.mli`, ki vsebuje podatke o tipih
+
+`prva.ml`
+.source[```
+let pomozni_racun = 3 + 3
+let odgovor = pomozni_racun * succ pomozni_racun
+```]
+
+`prva.mli`
+.source[```
+val odgovor : int
+```]
+
+---
+
+### Signatura lahko **skrije pomožne vrednosti**
+
+---
+
+### Signatura lahko **skrije definicije tipov**
+
+---
+
 ### **Vsoto** podamo z možnimi **variantami**
 
 .source[```
@@ -774,18 +797,18 @@ class: question, center, middle
 ### Rekurzivnim vsotam/zapisom pogosto pravimo **algebrajski** oziroma **induktivni** tipi
 
 .source[```
-type izraz =
-  | Stevilo of int
-  | Plus of izraz * izraz
-  | Minus of izraz
-  | Krat of izraz * izraz
+type expr =
+  | Num of int
+  | Plus of expr * expr
+  | Minus of expr
+  | Times of expr * expr
 ```]
 
 ### $$-(5 \times (2 + 7))$$
 
 .source[```
 Minus (
-  Krat (Stevilo 5, Plus (Stevilo 2, Stevilo 7))
+  Times (Num 5, Plus (Num 2, Num 7))
 )
 ```]
 
@@ -793,41 +816,32 @@ Minus (
 
 class: question, center, middle
 
-## `izracunaj`
+## `eval`
 
 .terminal.left[```
-# let x = Plus (Stevilo 2, Stevilo 4);;
-val x : izraz = Plus (Stevilo 2, Stevilo 4)
+# let x = Plus (Num 2, Num 4);;
+val x : expr = Plus (Num 2, Num 4)
 
-# let y = Minus (Stevilo 6);;
-val y : izraz = Minus (Stevilo 6)
+# let y = Minus (Num 6);;
+val y : expr = Minus (Num 6)
 
-# izracunaj (Plus (x, Krat (y, y)));;
+# eval (Plus (x, Krat (y, y)));;
 - : int = 42
 ```]
 
 ---
 
-### Datoteka `.ml` ima lahko ustrezno signaturo v datoteke `.mli`, ki vsebuje podatke o tipih
+class: question, center, middle
 
-`prva.ml`
-.source[```
-let pomozni_racun = 3 + 3
-let odgovor = pomozni_racun * succ pomozni_racun
+## `parse_expr : string -> expr`
+
+.terminal.left[```
+# parse_expr "2 + 4";;
+- : expr = Plus (Num 2, Num 4)
+
+# parse_expr "(2 + 3) * 5";;
+- : expr = Times (Plus (Num 2, Num 3), 5)
 ```]
-
-`prva.mli`
-.source[```
-val odgovor : int
-```]
-
----
-
-### Signatura lahko **skrije pomožne vrednosti**
-
----
-
-### Signatura lahko **skrije definicije tipov**
 
 </textarea>
 <script src="../../pomozno/prosojnice.js"></script>
