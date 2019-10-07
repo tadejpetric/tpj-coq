@@ -16,12 +16,19 @@ class: center, middle
 
 ---
 
+### Zgodovinski kontekst
 
-background-image: url(slike/lrg.jpg)
-background-size: auto 90%
+* 1957 – Fortran
+* 1958 – ALGOL, Lisp
+* 1962 – Simula
+* 1973 – Smalltalk, ML
+* 1985 – C++, Caml
+* 1990 – Standard ML, Haskell
+* 1995 – Java, OCaml
+* 2004 – Java generics, F#
+* 2014 – Swift, Java lambda
 
 ---
-
 
 ### Naš prvi program v OCamlu
 
@@ -294,24 +301,6 @@ let rec fakulteta = function
   | n -> n * fakulteta (n - 1)
 ```]
 
-.bad-example[```
-let rec fib = function
-  | 0 -> 0
-  | 1 -> 1
-  | n -> fib (n - 1) + fib (n - 2)
-```]
-
-.good-example[```
-let hitri_fib n =
-  let rec aux n a b =
-    if n = 0 then a else aux (n - 1) b (a + b)
-  in aux n 0 1
-```]
-
----
-
-### Hkrati lahko definiramo več rekurzivnih funkcij 
-
 .source[```
 let rec je_sodo = function
   | 0 -> true
@@ -442,7 +431,6 @@ let za_lase_privlecena_funkcija = function
 .center[```
 bool list -> bool list -> bool list
 int list -> int list -> int list
-int list list -> int list list -> int list list
 ...
 ```]
 
@@ -480,19 +468,19 @@ int list list -> int list list -> int list list
 
 class: question, center, middle
 
-## `vsota`, `dolzina`, `preslikaj`
+## `sum`, `length`, `map`
 
 .terminal.left[```
-# vsota [10; 20; 30];;
+# sum [10; 20; 30];;
 - : int = 60
 
-# dolzina [10; 20; 30];;
+# length [10; 20; 30];;
 - : int = 3
 
-# preslikaj succ [10; 20; 30];;
+# map succ [10; 20; 30];;
 - : int list = [11; 21; 31]
 
-# preslikaj kvadriraj [10; 20; 30];;
+# map kvadriraj [10; 20; 30];;
 - : int list = [100; 400; 900]
 ```]
 
@@ -627,13 +615,13 @@ val zmnozi' : int * int -> int = <fun>
 ### Uporaba delno uporabljenih funkcij
 
 .terminal[```
-# preslikaj (zmnozi 2) [10; 20; 30];;
+# map (zmnozi 2) [10; 20; 30];;
 - : int list = [20; 40; 60]
 
-# preslikaj ((+) 5) [10; 20; 30];;
+# map ((+) 5) [10; 20; 30];;
 - : int list = [15; 25; 35]
 
-# preslikaj (preslikaj succ) [[10; 20]; [30]];;
+# map (map succ) [[10; 20]; [30]];;
 - : int list list = [[11; 21]; [31]]
 ```]
 
@@ -655,6 +643,116 @@ val uncurry :
 ### $$curry \colon C^{A \times B} \to (C^B)^A, uncurry \colon (C^B)^A \to C^{A \times B}$$
 
 ### Postopku pravimo **curryiranje**
+
+---
+
+### Veliko funkcij na seznamih ima enako strukturo
+
+.source[```
+let rec sum = function
+  | [] -> 0
+  | x :: xs -> x + sum xs
+```]
+
+```
+  sum [1; 2; 3]
+= 1 + sum [2; 3]
+= 1 + (2 + sum [3])
+= 1 + (2 + (3 + sum []))
+= 1 + (2 + (3 + 0))
+```
+
+---
+
+### Veliko funkcij na seznamih ima enako strukturo
+
+.source[```
+let rec product = function
+  | [] -> 1
+  | x :: xs -> x * product xs
+```]
+
+```
+  product [1; 2; 3]
+= 1 * product [2; 3]
+= 1 * (2 * product [3])
+= 1 * (2 * (3 * product []))
+= 1 * (2 * (3 * 1))
+```
+
+---
+
+### Veliko funkcij na seznamih ima enako strukturo
+
+.source[```
+let rec length = function
+  | [] -> 0
+  | _ :: xs -> 1 + length xs
+```]
+
+```
+  length [1; 2; 3]
+= 1 + length [2; 3]
+= 1 + (1 + length [3])
+= 1 + (1 + (1 + length []))
+= 1 + (1 + (1 + 0))
+```
+
+---
+
+### Veliko funkcij na seznamih ima enako strukturo
+
+.source[```
+let rec map f = function
+  | [] -> []
+  | x :: xs -> f x :: map f xs
+```]
+
+```
+  map f [1; 2; 3]
+= f 1 : map f [2; 3]
+= f 1 : (f 2 : map f [3])
+= f 1 : (f 2 : (f 3 : map f []))
+= f 1 : (f 2 : (f 3 : []))
+```
+
+---
+
+### Splošni vzorec zajame funkcija `fold_right`
+
+.source[```
+let rec fold_right f xs z = match xs with
+  | [] -> z
+  | x :: xs -> f x (fold_right f xs z)
+```]
+
+```
+  fold_right f [1; 2; 3] z
+= f 1 (fold_right f [2; 3] z)
+= f 1 (f 2 (fold_right f [3] z))
+= f 1 (f 2 (f 3 (fold_right f [] z)))
+= f 1 (f 2 (f 3 z))
+```
+
+---
+
+### Z druge strani zlaga `fold_left`
+
+```
+  fold_right f [1; 2; 3] z
+= f 1 (fold_right f [2; 3] z)
+= f 1 (f 2 (fold_right f [3] z))
+= f 1 (f 2 (f 3 (fold_right f [] z)))
+= f 1 (f 2 (f 3 z))
+```
+
+```
+  fold_left f z [1; 2; 3]
+= fold_left f (f z 1) [2; 3]
+= fold_left f (f (f z 1) 2) [3]
+= fold_left f (f (f (f z 1) 2) 3) []
+= (f (f (f z 1) 2) 3)
+```
 
 ---
 
@@ -705,29 +803,6 @@ val abs : kompleksno -> float = <fun>
 
 ### .center[zapisi = nabori z imenovanimi polji<br>zapisni tipi = produkti z imenovanimi faktorji
 ]
-
----
-
-### Datoteka `.ml` ima lahko ustrezno signaturo v datoteke `.mli`, ki vsebuje podatke o tipih
-
-`prva.ml`
-.source[```
-let pomozni_racun = 3 + 3
-let odgovor = pomozni_racun * succ pomozni_racun
-```]
-
-`prva.mli`
-.source[```
-val odgovor : int
-```]
-
----
-
-### Signatura lahko **skrije pomožne vrednosti**
-
----
-
-### Signatura lahko **skrije definicije tipov**
 
 ---
 
@@ -788,9 +863,71 @@ let povrsina = function
 
 ---
 
-class: question, center, middle
+### Delno definirane funkcije lahko sprožijo izjeme
 
-## Zakaj vsotam pravimo vsote?
+.bad-example[```
+let slaba_glava (x :: _) = x
+```]
+
+.terminal[```
+Warning 8: Here is an example of a value that
+is not matched: []
+val slaba_glava : 'a list -> 'a = <fun>
+```]
+
+.terminal[```
+# slaba_glava [1; 2; 3];;
+- : int = 1
+# slaba_glava [];;
+Exception: Match_failure.
+```]
+
+### Ali obstaja varnejši način?
+
+---
+
+### Za delne funkcije raje uporabimo tip `option`
+
+.source[```
+type 'a option = None | Some of 'a
+```]
+
+.good-example[```
+let glava = function
+  | [] -> None
+  | x :: _ -> Some x
+```]
+
+.terminal[```
+val glava : 'a list -> 'a option = <fun>
+
+# glava [1; 2; 3];;
+- : int option = Some 1
+# glava [];;
+- : 'a option = None
+```]
+
+---
+
+### Rekurzivnim vsotam/zapisom pogosto pravimo **algebrajski** oziroma **induktivni** tipi
+
+.source[```
+type nat =
+  | Zero
+  | Succ of nat
+```]
+
+.source[```
+type 'a list =
+  | Nil
+  | Cons of 'a * 'a list
+```]
+
+.source[```
+type 'a tree =
+  | Empty
+  | Node of 'a tree * 'a * 'a tree
+```]
 
 ---
 
@@ -816,7 +953,7 @@ Minus (
 
 class: question, center, middle
 
-## `eval`
+## `eval : expr -> int`
 
 .terminal.left[```
 # let x = Plus (Num 2, Num 4);;
@@ -825,7 +962,7 @@ val x : expr = Plus (Num 2, Num 4)
 # let y = Minus (Num 6);;
 val y : expr = Minus (Num 6)
 
-# eval (Plus (x, Krat (y, y)));;
+# eval_expr (Plus (x, Krat (y, y)));;
 - : int = 42
 ```]
 
@@ -833,13 +970,13 @@ val y : expr = Minus (Num 6)
 
 class: question, center, middle
 
-## `parse_expr : string -> expr`
+## `parse : string -> expr`
 
 .terminal.left[```
-# parse_expr "2 + 4";;
+# parse "2 + 4";;
 - : expr = Plus (Num 2, Num 4)
 
-# parse_expr "(2 + 3) * 5";;
+# parse "(2 + 3) * 5";;
 - : expr = Times (Plus (Num 2, Num 3), 5)
 ```]
 
