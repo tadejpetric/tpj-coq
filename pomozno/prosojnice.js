@@ -14,7 +14,7 @@ jQuerySrc.onload = function() {
         $(this).hide();
       });
 
-      $('.terminal').addClass('hljs-hybrid');
+      // $('.terminal').addClass('hljs-zenburn');
     }); 
 };
 document.head.appendChild(jQuerySrc);
