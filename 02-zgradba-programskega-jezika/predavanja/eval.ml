@@ -1,14 +1,3 @@
-type environment = (Syntax.location * int) list
-
-let initial_environment = []
-
-let print_environment env =
-    print_endline "[";
-    env
-    |> List.sort_uniq (fun (Syntax.Location l, _) (Syntax.Location l', _) -> compare l l')
-    |> List.iter (fun (Syntax.Location l, n) -> print_endline ("  #" ^ string_of_int l ^ " := " ^ string_of_int n));
-    print_endline "]"
-
 let rec eval_exp env =
     function
     | Syntax.Lookup loc -> List.assoc loc env
@@ -44,3 +33,14 @@ let rec eval_cmd env =
             eval_cmd env' (Syntax.WhileDo (bexp, cmd))
         else
             env
+
+let print_environment env =
+    print_endline "[";
+    env
+    |> List.sort_uniq (fun (Syntax.Location l, _) (Syntax.Location l', _) -> compare l l')
+    |> List.iter (fun (Syntax.Location l, n) -> print_endline ("  #" ^ string_of_int l ^ " := " ^ string_of_int n));
+    print_endline "]"
+
+let run cmd =
+    eval_cmd [] cmd
+    |> print_environment

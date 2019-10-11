@@ -1,14 +1,19 @@
-let read_whole_file filename =
+let read_source filename =
     let channel = open_in filename in
-    let str = really_input_string channel (in_channel_length channel) in
+    let source = really_input_string channel (in_channel_length channel) in
     close_in channel;
-    str
-in
-let source = read_whole_file "example.imp" in
-let cmd = Parser.parse Parser.cmd source in
-match Check.check_cmd [] cmd with
-| None -> print_endline "Error"
-| Some _ ->
-    let env = Eval.initial_environment in
-    let env' = Eval.eval_cmd env cmd in
-    Eval.print_environment env'
+    source
+
+let main () =
+    if Array.length Sys.argv <> 2 then begin
+        failwith ("Run IMP as '" ^ Sys.argv.(0) ^ " <filename>.imp'");
+    end else
+        let filename = Sys.argv.(1) in
+        let source = read_source filename in
+        let cmd = Parser.parse Parser.cmd source in
+        if Check.check cmd then
+            Eval.run cmd
+        else
+            failwith "Not all locations are set!"
+
+let _ = main ()

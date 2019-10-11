@@ -36,3 +36,8 @@ let rec check_cmd locs =
             check_cmd locs cmd
         else
             None
+
+let check cmd = 
+    match check_cmd [] cmd with
+    | None -> false
+    | Some _ -> true
