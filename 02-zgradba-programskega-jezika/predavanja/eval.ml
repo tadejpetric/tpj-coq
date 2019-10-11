@@ -6,7 +6,7 @@ let print_environment env =
     print_endline "[";
     env
     |> List.sort_uniq (fun (Syntax.Location l, _) (Syntax.Location l', _) -> compare l l')
-    |> List.iter (fun (Syntax.Location l, n) -> Printf.printf "  #%d -> %d" l n);
+    |> List.iter (fun (Syntax.Location l, n) -> print_endline ("  #" ^ string_of_int l ^ " := " ^ string_of_int n));
     print_endline "]"
 
 let rec eval_exp env =
@@ -21,6 +21,8 @@ let eval_bexp env =
     function
     | Syntax.Bool b -> b
     | Syntax.Equal (exp1, exp2) -> eval_exp env exp1 = eval_exp env exp2
+    | Syntax.Less (exp1, exp2) -> eval_exp env exp1 < eval_exp env exp2
+    | Syntax.Greater (exp1, exp2) -> eval_exp env exp1 > eval_exp env exp2
 
 let rec eval_cmd env =
     function

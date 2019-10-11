@@ -19,7 +19,7 @@ let parse parser str =
 
 let fail = {run= (fun _ -> None)}
 
-let ok v = {run= (fun chrs -> Some (v, chrs))}
+let return v = {run= (fun chrs -> Some (v, chrs))}
 
 let bind parser1 parser2 =
   { run=
@@ -42,9 +42,6 @@ let map f p =
         | Some (v, chrs') -> Some (f v, chrs')
         | None -> None ) }
 
-let (++) parser1 parser2 = bind parser1 (fun e1 -> map (fun e2 -> (e1, e2)) parser2)
-let (--) parser1 parser2 = bind parser1 (fun e1 -> map (fun _ -> e1) parser2)
-
 let (>>=) = bind
 let (>>) parser1 parser2 = parser1 >>= (fun _ -> parser2)
 
@@ -63,7 +60,7 @@ let one_of parsers = List.fold_right (||) parsers fail
 let word str =
   explode str
   |> List.map character
-  |> List.fold_left (--) (ok ' ') 
+  |> List.fold_left (>>) (return ' ') 
   |> map ignore
 
 let digit =
@@ -74,35 +71,33 @@ let digit =
 
 let rec many parser = { run = fun chrs ->
   (one_of [
-    parser ++ many parser |> map (fun (v, vs) -> v :: vs);
-    ok [];
+    parser >>= (fun v -> many parser >>= fun vs -> return (v :: vs));
+    return [];
   ]).run chrs }
 
 let many1 parser =
-    parser
-    ++ many parser
-    |> map (fun (v, vs) -> v :: vs)
+    parser >>= (fun v -> many parser >>= fun vs -> return (v :: vs))
 
 let integer =
   many1 digit
   |> map implode
   |> map int_of_string
 
-let space = many (character ' ') |> map ignore
-let space1 = many1 (character ' ') |> map ignore
+let space = many (character ' ' || character '\n') |> map ignore
+let space1 = many1 (character ' ' || character '\n') |> map ignore
 let parens parser =
   character '(' >>
   space >>
   parser >>= fun p ->
   space >>
   character ')' >>
-  ok p
+  return p
 
 let location =
   (* #n *)
   character '#' >>
   integer >>= fun l ->
-  ok (Syntax.Location l)
+  return (Syntax.Location l)
 
 let rec exp = { run = fun chrs ->
   let parser = one_of [
@@ -113,7 +108,7 @@ let rec exp = { run = fun chrs ->
       character '+' >>
       space >>
       atomic_exp >>= fun e2 ->
-      ok (Syntax.Plus (e1, e2))
+      return (Syntax.Plus (e1, e2))
     );
     (* e1 - e2 *)
     (
@@ -122,7 +117,7 @@ let rec exp = { run = fun chrs ->
       character '-' >>
       space >>
       atomic_exp >>= fun e2 ->
-      ok (Syntax.Minus (e1, e2))
+      return (Syntax.Minus (e1, e2))
     );
     (* e1 * e2 *)
     (
@@ -131,8 +126,9 @@ let rec exp = { run = fun chrs ->
       character '*' >>
       space >>
       atomic_exp >>= fun e2 ->
-      ok (Syntax.Times (e1, e2))
+      return (Syntax.Times (e1, e2))
     );
+    atomic_exp
   ]
   in parser.run chrs }
 and atomic_exp = { run = fun chrs ->
@@ -140,12 +136,12 @@ and atomic_exp = { run = fun chrs ->
     (* l *)
     (
       location >>=
-      fun l -> ok (Syntax.Lookup l)
+      fun l -> return (Syntax.Lookup l)
     );
     (* n *)
     (
       integer >>= fun n ->
-      ok (Syntax.Int n)
+      return (Syntax.Int n)
     );
     (* (e) *)
     parens exp;
@@ -156,48 +152,62 @@ let bexp =
     (* true *)
     (
       word "true" >>
-      ok (Syntax.Bool true)
+      return (Syntax.Bool true)
     );
     (* false *)
     (
       word "false" >>
-      ok (Syntax.Bool false)
+      return (Syntax.Bool false)
     );
     (* e1 = e2 *)
     (
       exp >>= fun e1 ->
       space >> character '=' >> space >>
       exp >>= fun e2 ->
-      ok (Syntax.Equal (e1, e2))
+      return (Syntax.Equal (e1, e2))
+    );
+    (* e1 < e2 *)
+    (
+      exp >>= fun e1 ->
+      space >> character '<' >> space >>
+      exp >>= fun e2 ->
+      return (Syntax.Less (e1, e2))
+    );
+    (* e1 > e2 *)
+    (
+      exp >>= fun e1 ->
+      space >> character '>' >> space >>
+      exp >>= fun e2 ->
+      return (Syntax.Greater (e1, e2))
     )
   ]
 
 let rec cmd = {run = fun chrs ->
   let parser = one_of [
-    (* IF b THEN c1 ELSE c2 *)
+    (* if b then c1 else c2 *)
     (
-      word "IF" >> space1 >>
+      word "if" >> space1 >>
       bexp >>= fun b ->
-      space1 >> word "THEN" >> space1 >>
+      space1 >> word "then" >> space1 >>
       cmd >>= fun c1 ->
-      space1 >> word "ELSE" >> space1 >>
+      space1 >> word "else" >> space1 >>
       cmd >>= fun c2 ->
-      ok (Syntax.IfThenElse (b, c1, c2))
+      return (Syntax.IfThenElse (b, c1, c2))
     );
-    (* WHILE b DO c *)
+    (* while b do c *)
     (
-      word "WHILE" >> space1 >>
+      word "while" >> space1 >>
       bexp >>= fun b ->
-      space1 >> word "DO" >> space1 >>
+      space1 >> word "do" >> space1 >>
       cmd >>= fun c ->
-      ok (Syntax.WhileDo (b, c))
+      return (Syntax.WhileDo (b, c))
     );
     (* c1; c2 *)
     (
       atomic_cmd >>= fun c1 ->
       space >> character ';' >> space >>
       cmd >>= fun c2 ->
-      ok (Syntax.Seq (c1, c2))
+      return (Syntax.Seq (c1, c2))
     );
     atomic_cmd
   ]
@@ -209,12 +219,12 @@ and atomic_cmd = {run = fun chrs ->
       location >>= fun l ->
       space >> word ":=" >> space >>
       exp >>= fun e ->
-      ok (Syntax.Assign (l, e))
+      return (Syntax.Assign (l, e))
     end;
-    (* SKIP *)
+    (* skip *)
     begin
-      word "SKIP" >>
-      ok Syntax.Skip
+      word "skip" >>
+      return Syntax.Skip
     end;
     parens cmd;      
   ]

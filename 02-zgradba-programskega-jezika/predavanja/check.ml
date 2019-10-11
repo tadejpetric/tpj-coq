@@ -10,6 +10,8 @@ let check_bexp locs =
     function
     | Syntax.Bool b -> true
     | Syntax.Equal (exp1, exp2) -> check_exp locs exp1 && check_exp locs exp2
+    | Syntax.Less (exp1, exp2) -> check_exp locs exp1 && check_exp locs exp2
+    | Syntax.Greater (exp1, exp2) -> check_exp locs exp1 && check_exp locs exp2
 
 let rec check_cmd locs =
     function
