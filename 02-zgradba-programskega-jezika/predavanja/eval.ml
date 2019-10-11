@@ -38,7 +38,7 @@ let print_environment env =
     print_endline "[";
     env
     |> List.sort_uniq (fun (Syntax.Location l, _) (Syntax.Location l', _) -> compare l l')
-    |> List.iter (fun (Syntax.Location l, n) -> print_endline ("  #" ^ string_of_int l ^ " := " ^ string_of_int n));
+    |> List.iter (fun (Syntax.Location l, n) -> print_endline ("  #" ^ l ^ " := " ^ string_of_int n));
     print_endline "]"
 
 let run cmd =

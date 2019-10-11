@@ -69,6 +69,12 @@ let digit =
   |> List.map character
   |> one_of
 
+let alpha =
+  "abcdefghijklmnopqrstvwuxyz"
+  |> explode
+  |> List.map character
+  |> one_of
+
 let rec many parser = { run = fun chrs ->
   (one_of [
     parser >>= (fun v -> many parser >>= fun vs -> return (v :: vs));
@@ -83,6 +89,11 @@ let integer =
   |> map implode
   |> map int_of_string
 
+let identifier =
+  alpha >>= fun chr ->
+  many (alpha || digit) >>= fun chrs ->
+  return (implode (chr :: chrs))
+
 let space = many (character ' ' || character '\n') |> map ignore
 let space1 = many1 (character ' ' || character '\n') |> map ignore
 let parens parser =
@@ -96,7 +107,7 @@ let parens parser =
 let location =
   (* #n *)
   character '#' >>
-  integer >>= fun l ->
+  identifier >>= fun l ->
   return (Syntax.Location l)
 
 let rec exp = { run = fun chrs ->
