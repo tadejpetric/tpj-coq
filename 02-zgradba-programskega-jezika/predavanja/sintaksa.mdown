@@ -1,0 +1,64 @@
+## Abstraktna sintaksa
+
+aritmetični izraz _e_ ::= _l_
+     | _n_
+     | _e1_ `+` _e2_
+     | _e1_ `-` _e2_
+     | _e1_ `*` _e2_
+
+Booleov izraz _b_ ::= `true`
+     | `false`
+     | _e1_ `=` _e2_
+     | _e1_ `<` _e2_
+     | _e1_ `>` _e2_
+
+ukaz _c_ ::= `if` _b_ `then` _c1_ `else` _c2_
+     | `while` _b_ `do` _c_
+     | _c1_ `;` _c2_
+     | _l_ `:=` _e_
+     | `skip`
+
+## Konkretna sintaksa z ignoriranimi presledki
+
+    <exp> ::= <atomic_exp> "+" <atomic_exp>
+           |  <atomic_exp> "-" <atomic_exp>
+           |  <atomic_exp> "*" <atomic_exp>
+           |  <atomic_exp>
+    <atomic_exp> ::= location
+                  |  integer
+                  |  "(" <exp> ")"
+    <bexp> ::= "true"
+            |  "false"
+            |  <exp> "=" <exp>
+            |  <exp> "<" <exp>
+            |  <exp> ">" <exp>
+    <cmd> ::= "if" <bexp> "then" <cmd> "else" <cmd>
+           |  "while" <bexp> "do" <cmd>
+           |  <atomic_cmd> ";" <cmd>
+    <atomic_cmd> ::= location ":=" <exp>
+                  |  "skip"
+                  |  "(" <cmd> ")"
+
+## Konkretna sintaksa z upoštevanimi presledki
+
+    <space> ::= " " | "\n" | "\t" | "\r"
+    <spaces> ::= "" | <spaces1>
+    <spaces1> ::= <space> <spaces>
+    <exp> ::= <atomic_exp> <spaces> "+" <spaces> <atomic_exp>
+           |  <atomic_exp> <spaces> "-" <spaces> <atomic_exp>
+           |  <atomic_exp> <spaces> "*" <spaces> <atomic_exp>
+           |  <atomic_exp>
+    <atomic_exp> ::= location
+                  |  integer
+                  |  "(" <spaces> <exp> <spaces> ")"
+    <bexp> ::= "true"
+            |  "false"
+            |  <exp> <spaces> "=" <spaces> <exp>
+            |  <exp> <spaces> "<" <spaces> <exp>
+            |  <exp> <spaces> ">" <spaces> <exp>
+    <cmd> ::= "if" <spaces1> <bexp> <spaces1> "then" <spaces1> <cmd> <spaces1> "else" <spaces1> <cmd>
+           |  "while" <spaces1> <bexp> <spaces1> "do" <spaces1> <cmd>
+           |  <atomic_cmd> <spaces> ";" <spaces> <cmd>
+    <atomic_cmd> ::= location <spaces> ":=" <spaces> <exp>
+                  |  "skip"
+                  |  "(" <spaces> <cmd> <spaces> ")"

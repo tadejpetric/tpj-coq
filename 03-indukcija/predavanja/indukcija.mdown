@@ -1,0 +1,179 @@
+# Indukcija
+
+## Induktivne množice
+
+### Naravna števila
+
+Induktivne množice so definirane kot najmanjše množice, ki so zaprte za dane konstrukcije elementov. Na primer, množico naravnih števil $\mathbb{N}$ lahko definiramo kot **najmanjšo** množico, ki:
+
+ vsebuje $0$ in
+ za poljuben $n$ vsebuje tudi njegovega naslednika $n^+$.
+
+Pravili dostikrat zapišemo tudi v obliki:
+$$
+  \frac{}{0 \in \mathbb{N}}
+  \quad
+  \frac{n \in \mathbb{N}}{n^+ \in \mathbb{N}}
+$$
+V splošnem bomo uporabljali pravila oblike
+$$
+  \frac{h_1 \quad h_2 \quad \cdots \quad h_n}{c},
+$$
+kjer nad črto pišemo _predpostavke_ $h_1, \dots, h_n$, pod črto pa _zaključek_ $c$. Pravilom oblike
+$$
+  \frac{}{\quad c \quad},
+$$
+ki nad črto nimajo predpostavk, pravimo _aksiomi_.
+
+Katere elemente vsebuje $\mathbb{N}$?
+
+1. Zaradi prvega pogoja mora veljati $0 \in \mathbb{N}$.
+2. Sedaj mora zaradi drugega pogoja $\mathbb{N}$ vsebovati tudi $0^+$, ki ga označimo z $1$.
+3. Podobno nadaljujemo in vidimo, da $\mathbb{N}$ vsebuje tudi $1^+ = 2$.
+
+Na vsakem koraku dobimo novo naravno število in obratno, vsak element $\mathbb{N}$ dobimo tako, da končno mnogokrat uporabimo eno od zgoraj naštetih pravil (čeprav resda prav veliko izbire nimamo).
+
+Seveda $\mathbb{N}$ ni edina množica, ki zadošča zgornjima dvema praviloma. Taka množica je na primer tudi $\mathbb{Z}$, vendar hitro vidimo, da sledi $\mathbb{N} \subseteq \mathbb{Z}$, saj je $\mathbb{N}$ najmanjša taka množica. Res, če $\mathbb{Z}$ zadošča zgornjima dvema praviloma, po enakem postopku kot zgoraj vidimo, da mora vsebovati najprej $0$, potem $0^+ = 1$, potem $1^+ = 2$ in tako naprej za vsa števila $n \in \mathbb{N}$.
+
+Vsaka množica, ki zadošča zgornjima dvema praviloma, bo vsebovala vsa naravna števila $n \in \mathbb{N}$. To lastnost lahko uporabimo za _dokazovanje z indukcijo_. Naj bo $P$ predikat na naravnih številih, za katerega velja $P(0)$ ter $\forall n \in \mathbb{N}. P(n) \Rightarrow P(n^+)$. Tedaj sledi, da množica $\{ n \in \mathbb{N} | P(n) \}$ zadošča obema praviloma in posledično vsebuje celoten $\mathbb{N}$, zato $P(n)$ velja za vsak $n \in \mathbb{N}$.
+
+### Aritmetični izrazi
+
+Podobno lahko mnnožico aritmetičnih izrazov $\mathbb{E}$, ki smo jo definirali že z BNF sintakso
+$$
+  e ::= n \ |\ e_1 + e_2 \ |\ e_1 * e_2 \ |\ -e,
+$$
+definiramo tudi kot najmanjšo množico, ki:
+
+* vsebuje vsako celo število $n$,
+* za poljubna izraza $e_1, e_2 \in \mathbb{E}$ vsebuje tudi izraz $e_1 + e_2$,
+* za poljubna izraza $e_1, e_2 \in \mathbb{E}$ vsebuje tudi izraz $e_1 * e_2$ in
+* za poljuben izraz $e \in \mathbb{E}$ vsebuje tudi izraz $-e$;
+
+oziroma s pravili
+$$
+  \frac{}{n \in \mathbb{E}}(n \in \mathbb{N})
+  \quad
+  \frac{e_1 \in \mathbb{E}\quad e_2 \in \mathbb{E}}{e_1 + e_2 \in \mathbb{E}}
+  \quad
+  \frac{e_1 \in \mathbb{E}\quad e_2 \in \mathbb{E}}{e_1 * e_2 \in \mathbb{E}}
+  \quad
+  \frac{e \in \mathbb{E}}{-e \in \mathbb{E}}
+$$
+Opazimo, da smo pri prvem pravilu $n \in \mathbb{N}$ zapisali kot stranski pogoj, saj je množica $\mathbb{N}$ že definirana in ni podana z napisanimi pravili.
+
+Tudi tu vse elemente $\mathbb{E}$ dobimo tako, da končno mnogokrat uporabljamo pravila.
+
+1. Najprej vidimo, da $\mathbb{E}$ vsebuje vsa števila $\dots, -2, -1, 0, 1, 2, \dots$.
+2. Sedaj iz preostalih treh pravil sledi, da mora $\mathbb{E}$ tega mora vsebovati tudi vse njihove vsote $(0 + 0), (0 + 1), (1 + 0), (-2 + 3), \dots$, njihove produkte $(0 * 0), (0 * 1), (1 * 0), (-2 * 3), \dots$ ter njihove negacije $-0, -1, -(-42), \dots$
+3. Nato vidimo, da mora $\mathbb{E}$ vsebovati tudi vse kombinacije elementov, ki smo jih obili v prejšnjih korakih, na primer $(-2 + 3) * (0 * 1)$ ali $-(-42) + (6 * 7)$.
+
+Če postopek nadaljujemo, dobimo vse elemente množice $\mathbb{E}$, vsakega v končno mnogo korakih. Vsakemu elementu $e \in \mathbb{E}$ pripada tudi natanko določeno _drevo izpeljave_, iz katerega se vidi, kako smo prišli do dejstva, da $\mathbb{E}$ vsebuje $e$. V tem drevesu je $e$ koren, pravila so vozlišča, aksiomi pa listi. Na primer, elementu $42 + (6 * 7)$ pripada drevo
+$$
+  \frac
+    {
+      \frac
+        {}
+        {42 \in \mathbb{E}}
+      \quad
+      \frac
+        {\frac{}{6 \in \mathbb{E}} \quad \frac{}{7 \in \mathbb{E}}}
+      {6 * 7 \in \mathbb{E}}
+    }
+    {42 + (6 * 7) \in \mathbb{E}}
+$$
+Vidimo, da na $n$-tem koraku dobimo ravno tiste elemente z drevesom izpeljave višine $n$.
+
+Obstoj množic $\mathbb{N}$ in $\mathbb{E}$ ter tudi bolj splošnih množic, narejenih po podobnem kopitu, sledi iz aksiomov teorije množic, vendar tega ne bomo dokazali. Raje se bomo osredotočili na induktivne _podmnožice_, ki jih enostavno natančno definiramo.
+
+## Induktivne podmnožice
+
+Na primer, množico sodih naravnih števil lahko podamo kot najmanjšo podmnožico $S \subseteq \mathbb{N}$, zaprto za pravili
+$$
+  \frac{}{0 \in S}
+  \quad
+  \frac{n \in S}{n + 2 \in S}
+$$
+Kaj vse vsebuje $S$?
+
+1. Najprej vidimo, da je $0 \in S$.
+
+### Množica pravil $R$
+
+Da se izognemo natančni definiciji, kaj vse nam lahko podaja pravila, bomo na njih raje gledali kot na množico $R$ parov $(H, c)$ kjer bo $H \subseteq X$ _končna_ množica predpostavk, $c$ pa zaključek.  "Ulomke", kot smo jih pisali doslej, bomo uporabljali še naprej, vendar nam bodo le služili kot krajši zapis množice $R \subseteq \mathcal{P}_f(X) \times X$. Na primer, pravila, ki podajajo množico sodih števil, bi podali z množico
+$$
+  \Big\{
+    \big(\emptyset, 0\big),
+    \big(\{0\}, 2\big),
+    \big(\{1\}, 3\big),
+    \big(\{2\}, 4\big),
+    \dots
+  \Big\}
+$$
+Opazimo, da zaprtje za pravilo
+$$
+  \frac{n \in S}{n + 2 \in S}
+$$
+pomeni tudi, da iz $1 \in S$ sledi $3 \in S$.
+
+Množica $A \subseteq X$ _je zaprta za pravila $R$_, če velja
+$$
+  \forall (H, c) \in R. H \subseteq A \Rightarrow c \in A.
+$$
+Torej, če $A$ vsebuje vse predpostavke $H$, mora vsebovati tudi zaključek $c$.
+
+### Konstrukcija najmanjše množice $I_R$
+
+Pokažimo, da v $X$ obstaja najmanjša podmnožica, zaprta za pravila $R$. Definirajmo operator $F_R : \mathcal{P}(X) \to \mathcal{P}(X)$, ki podmnožico $A \subseteq X$ slika v
+$$
+  F_R(A) = \{ c \in X | \exists (H, c) \in R. H \subseteq A \}
+$$
+Operator $F_R$ torej $A$ slika v množico vseh tistih zaključkov $c$, za katere so vse hipoteze $H$ v $A$. Opazimo, da je $A$ zaprta za pravila $R$ natanko tedaj, kadar velja $F_R(A) \subseteq A$. 
+
+Hitro vidimo, da je $F_R$ monoton: če velja $A_1 \subseteq A_2$, velja tudi $F_R(A_1) \subseteq F_R(A_2)$. Definirajmo $I_0 = \emptyset$ ter $I_{n + 1} = F_R(I_n)$.
+
+Za vajo lahko preverimo, da je v zgornjem primeru sodih števil dobimo $I_0 = \emptyset$, $I_1 = \{ 0 \}$, $I_2 = \{ 0, 2 \}$, $I_3 = \{ 0, 2, 4 \}$, … V splošnem so v $I_n$ vsi elementi, ki jih dobimo z največ $n$ ponovitvami uporabe pravil oziroma drevesi izpeljave višine največ $n$.
+
+Ker je $I_0 = \emptyset \subseteq I_1$, iz monotonosti sledi
+$$
+  I_1 = F_R(I_0) \subseteq F_R(I_1) = I_2
+$$
+in podobno naprej, zato dobimo naraščajočo verigo
+$$
+  I_0 \subseteq I_1 \subseteq I_2 \subseteq I_3 \subseteq \cdots
+$$
+Množico $I_R$ definiramo kot supremum te verige, torej
+$$
+  I_R = \bigcup_{n = 0}^{\infty} I_n
+$$
+
+### Trditev: $I_R$ je zaprta za pravila $R$
+
+Vzemimo poljuben $(H, c) \in R$, da velja $H \subseteq I_R$. Ker je $H$ končna, je oblike $\{ h_1, h_2, \dots, h_k \}$, pri čemer je $h_i \in I_R$. Ker je $I_R = \bigcup_{n = 0}^{\infty} I_n$, mora za vsak $i$ obstajati nek $n_i$, da velja $h_i \in I_{n_i}$. Ker imamo naraščajočo verigo, za vse $i$ velja $h_i \in I_m$, kjer je $m = \max(n_1, \dots, n_k)$. Tedaj pa je
+$$
+  c \in F_R(I_m) = I_{m + 1} \subseteq \bigcup_{n = 0}^{\infty} I_n = I_R
+$$
+kar smo želeli pokazati.
+
+### Trditev: $I_R$ je najmanjša množica, zaprta za pravila $R$
+
+Vzemimo poljubno množico $A$, zaprto za pravila $R$ in pokažimo, da velja $I_R \subseteq A$. Ker velja $I_0 = \emptyset \subseteq A$ in je $F_R$ monoton, velja tudi
+$$
+  I_1 = F_R(I_0) \subseteq F_R(A) \subseteq A
+$$
+Po enakem postopku za vsak $n$ dobimo $I_n \subseteq A$, torej velja tudi
+$$
+  I_R = \bigcup_{n = 0}^{\infty} I_n \subseteq A
+$$
+
+### Dokazovanje z indukcijo
+
+Na vsaki induktivno podani podmnožici lahko uporabimo dokaz z indukcijo. Naj bo $P$ predikat na $X$ in naj za vsa pravila
+$$
+  \frac{h_1 \quad h_2 \quad \cdots \quad h_n}{c},
+$$
+velja
+$$
+  P(h_1) \land P(h_2) \land \cdots \land P(h_n) \Rightarrow P(c).
+$$
+Tedaj je množica $\{ x \in X | P(x)\}$ zaprta za pravila $R$, zato vsebuje množico $I_R$, torej velja $\forall x \in I_R. P(x)$.
