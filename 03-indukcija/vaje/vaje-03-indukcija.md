@@ -1,15 +1,23 @@
 ## Naloga 1
 
+Zapišite evaluacijsko drevo za naslednja ukaza v jeziku IMP:
+
+  1. `#a := 1; if #a < 2 then #b := 2 * #a else #b := 0`
+  
+  2. `#a := 0; while #a < 2 do #a := #a + 1` 
+
+## Naloga 2
+
 Dopolnite operacijsko semantiko jezika IMP z:
 
   1. Logičnima operacijama `&&` in `||`. Primerjajte pravila kjer izračunamo vrednosti obeh argumentov in t.i. 'short-circuit evaluation', ki vrednost drugega argumenta izračuna zgolj če je to potrebno.
 
   2. Operacijo CAS (compare and swap), kjer `cas loc n m` preveri, ali ima lokacija `loc` vrednost `n`. V primeru ujemanja vrednost lokacije posodobi na `m`, sicer ne spremeni ničesar.
 
-  3. For zanko oblike `for l := n to m do c`.
+  3. Zanko for oblike `for l := n to m do c`.
 
 
-## Naloga 2
+## Naloga 3
 
 Zapišite induktivno definicijo seznamov z elementi iz množice A in nato izpeljite pravila za dokaz z indukcijo.
 
@@ -27,8 +35,11 @@ Definirajte manjkajoče funkcije in z indukcijo pokažite enakosti:
 
   5. `map f (reverse xs) = reverse (map f xs)`
 
+## Naloga 4
 
-## Naloga 3
+Pokažite, da lahko podmnožico naraščajočih seznamov podamo z induktivno relacijo.
+
+## Naloga 5
 
 Zapišite induktivno definicijo dvojiških dreves z vrednostmi iz množice A in nato izpeljite pravila za dokaz z indukcijo.
 
@@ -49,6 +60,6 @@ Nato napišite funkciji `tree_map` in `tree_to_list` in dokažite enakost
 
 ``` tree_to_list (tree_map f tree) = list_map f (tree_to_list tree) ```
 
-## Naloga 4
+## Naloga 6
 
-Razširite izrek o varnosti za jezik IMP za konstrukcije iz Naloga 1.
+Razširite izrek o varnosti za jezik IMP za konstrukcije iz Naloge 1.
