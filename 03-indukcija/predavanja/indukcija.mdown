@@ -84,11 +84,11 @@ $$
 $$
 Vidimo, da na $n$-tem koraku dobimo ravno tiste elemente z drevesom izpeljave višine $n$.
 
-Obstoj množic $\mathbb{N}$ in $\mathbb{E}$ ter tudi bolj splošnih množic, narejenih po podobnem kopitu, sledi iz aksiomov teorije množic, vendar tega ne bomo dokazali. Raje se bomo osredotočili na induktivne _podmnožice_, ki jih enostavno natančno definiramo.
+Obstoj množic $\mathbb{N}$ in $\mathbb{E}$ ter tudi bolj splošnih množic, narejenih po podobnem kopitu, sledi iz aksiomov teorije množic, vendar tega ne bomo dokazali.
 
 ## Induktivne podmnožice
 
-Na primer, množico sodih naravnih števil lahko podamo kot najmanjšo podmnožico $S \subseteq \mathbb{N}$, zaprto za pravili
+Raje se bomo osredotočili na induktivne _podmnožice_, ki jih enostavno natančno definiramo, hkrati pa jih bomo pri teoriji programskih jezikov intenzivno uporabljali. Najpogosteje se bomo posluževali induktivno podanih relacij kot sta evaluacija ali pravilnost izrazov v jeziku IMP. V preostanku tega razdelka pa si bomo izbrali bolj enostaven primer. Množico sodih naravnih števil lahko podamo kot najmanjšo podmnožico $S \subseteq \mathbb{N}$, zaprto za pravili
 $$
   \frac{}{0 \in S}
   \quad

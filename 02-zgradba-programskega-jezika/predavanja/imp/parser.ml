@@ -32,8 +32,8 @@ let ( >> ) parser1 parser2 =
   parser1 >>= fun _ -> parser2
 
 let satisfy cond parser =
-  let cond_parser v chrs =
-    if cond v then Some (v, chrs) else None in
+  let cond_parser v =
+    if cond v then return v else fail in
   parser >>= cond_parser
 
 let digit =
