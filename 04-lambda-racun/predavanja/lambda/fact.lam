@@ -1,0 +1,3 @@
+LET fact = REC fact n -> IF n = 0 THEN 1 ELSE n * fact (n - 1)
+IN
+fact 10
