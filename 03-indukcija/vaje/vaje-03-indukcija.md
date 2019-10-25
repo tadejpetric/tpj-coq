@@ -14,8 +14,6 @@ Dopolnite operacijsko semantiko jezika IMP z:
 
   2. Operacijo CAS (compare and swap), kjer `cas loc n m` preveri, ali ima lokacija `loc` vrednost `n`. V primeru ujemanja vrednost lokacije posodobi na `m`, sicer ne spremeni ničesar.
 
-  3. Zanko for oblike `for l := n to m do c`.
-
 
 ## Naloga 3
 
@@ -27,7 +25,7 @@ Definirajte manjkajoče funkcije in z indukcijo pokažite enakosti:
 
   1. `xs @ [] = xs` 
 
-  2. `reverse (xs @ ys) = revers ys @ reverse xs`
+  2. `reverse (xs @ ys) = reverse ys @ reverse xs`
 
   3. `reverse (reverse xs) = xs`
 
@@ -62,4 +60,4 @@ Nato napišite funkciji `tree_map` in `tree_to_list` in dokažite enakost
 
 ## Naloga 6
 
-Razširite izrek o varnosti za jezik IMP za konstrukcije iz Naloge 1.
+Razširite izrek o varnosti za jezik IMP za konstrukciji iz Naloge 1.
