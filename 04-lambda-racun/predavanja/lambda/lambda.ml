@@ -11,8 +11,9 @@ let main () =
     let filename = Sys.argv.(1) in
     let source = read_source filename in
     let e = Parser.parse source in
-    print_endline (Syntax.string_of_exp e);
-    Eval.eval e
-
+    print_endline "MALI KORAKI:";
+    Eval.small_step e;
+    print_endline "VELIKI KORAKI:";
+    Eval.big_step e
 
 let _ = main ()
