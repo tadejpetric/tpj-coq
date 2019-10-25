@@ -155,13 +155,12 @@ let rec steps e =
 
 let big_step e =
   let v = eval_exp [] e in
-    v
-    |> string_of_value
-    |> print_endline
+  print_endline (string_of_value v)
 
-let small_step e =
-  let es = steps e in
-    es
-    |> List.map Syntax.string_of_exp
-    |> String.concat "\n-->\n"
-    |> print_endline
+let rec small_step e =
+  print_endline (Syntax.string_of_exp e);
+  match step e with
+  | None -> ()
+  | Some e' ->
+    print_endline "  -->";
+    small_step e'
