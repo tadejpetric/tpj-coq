@@ -93,65 +93,48 @@ let rec subst x v e =
   | Syntax.RecLambda (f', x', _) when f' = x' || x = x' -> e
   | Syntax.RecLambda (f', x', e) -> Syntax.RecLambda (f', x', subst x v e)
 
+exception Stop
 
 let rec step = function
-  | Syntax.Var _ | Syntax.Int _ | Syntax.Bool _ | Syntax.Lambda _ | Syntax.RecLambda _ -> None
-  | Syntax.Plus (e1, e2) ->
-    step_under2 e1 e2 (fun (e1, e2) -> Syntax.Plus (e1, e2)) (function
-    | (Syntax.Int n1, Syntax.Int n2) -> Some (Syntax.Int (n1 + n2))
-    | _ -> None
-    )
-  | Syntax.Minus (e1, e2) ->
-    step_under2 e1 e2 (fun (e1, e2) -> Syntax.Minus (e1, e2)) (function
-    | (Syntax.Int n1, Syntax.Int n2) -> Some (Syntax.Int (n1 - n2))
-    | _ -> None
-    )
-  | Syntax.Times (e1, e2) ->
-    step_under2 e1 e2 (fun (e1, e2) -> Syntax.Times (e1, e2)) (function
-    | (Syntax.Int n1, Syntax.Int n2) -> Some (Syntax.Int (n1 * n2))
-    | _ -> None
-    )
-  | Syntax.Equal (e1, e2) ->
-    step_under2 e1 e2 (fun (e1, e2) -> Syntax.Equal (e1, e2)) (function
-    | (Syntax.Int n1, Syntax.Int n2) -> Some (Syntax.Bool (n1 = n2))
-    | _ -> None
-    )
-  | Syntax.Less (e1, e2) ->
-    step_under2 e1 e2 (fun (e1, e2) -> Syntax.Less (e1, e2)) (function
-    | (Syntax.Int n1, Syntax.Int n2) -> Some (Syntax.Bool (n1 < n2))
-    | _ -> None
-    )
-  | Syntax.Greater (e1, e2) ->
-    step_under2 e1 e2 (fun (e1, e2) -> Syntax.Greater (e1, e2)) (function
-    | (Syntax.Int n1, Syntax.Int n2) -> Some (Syntax.Bool (n1 > n2))
-    | _ -> None
-    )
-  | Syntax.IfThenElse (e, e1, e2) ->
-    step_under e (fun e' -> Syntax.IfThenElse (e', e1, e2)) (function
-    | Syntax.Bool b -> if b then Some e1 else Some e2
-    | _ -> None
-    )
-  | Syntax.Apply (e1, e2) ->
-    step_under2 e1 e2 (fun (e1, e2) -> Syntax.Apply (e1, e2)) (function
-    | (Syntax.RecLambda (f, x, e), v) -> Some (subst f (Syntax.RecLambda (f, x, e)) (subst x v e))
-    | (Syntax.Lambda (x, e), v) -> Some (subst x v e)
-    | _ -> None
-    )
-and step_under e wrap final =
-  match step e with
-  | Some e' -> Some (wrap e')
-  | None -> final e
-and step_under2 e1 e2 wrap final =
-  step_under e1 (fun e1' -> wrap (e1', e2)) (fun v1 ->
-    step_under e2 (fun e2' -> wrap (v1, e2')) (fun v2 ->
-      final (v1, v2)
-    )
-  )
-
-let rec steps e =
-  match step e with
-  | None -> [e]
-  | Some e' -> e :: steps e'
+  | Syntax.Var _ | Syntax.Int _ | Syntax.Bool _ | Syntax.Lambda _ | Syntax.RecLambda _ -> raise Stop
+  | Syntax.Plus (Syntax.Int n1, Syntax.Int n2) -> Syntax.Int (n1 + n2)
+  | Syntax.Plus (Syntax.Int n1, e2) -> Syntax.Plus (Syntax.Int n1, step e2)
+  | Syntax.Plus (e1, e2) -> Syntax.Plus (step e1, e2)
+  | Syntax.Minus (Syntax.Int n1, Syntax.Int n2) -> Syntax.Int (n1 - n2)
+  | Syntax.Minus (Syntax.Int n1, e2) -> Syntax.Minus (Syntax.Int n1, step e2)
+  | Syntax.Minus (e1, e2) -> Syntax.Minus (step e1, e2)
+  | Syntax.Times (Syntax.Int n1, Syntax.Int n2) -> Syntax.Int (n1 * n2)
+  | Syntax.Times (Syntax.Int n1, e2) -> Syntax.Times (Syntax.Int n1, step e2)
+  | Syntax.Times (e1, e2) -> Syntax.Times (step e1, e2)
+  | Syntax.Equal (Syntax.Int n1, Syntax.Int n2) -> Syntax.Bool (n1 = n2)
+  | Syntax.Equal (Syntax.Int n1, e2) -> Syntax.Equal (Syntax.Int n1, step e2)
+  | Syntax.Equal (e1, e2) -> Syntax.Equal (step e1, e2)
+  | Syntax.Less (Syntax.Int n1, Syntax.Int n2) -> Syntax.Bool (n1 < n2)
+  | Syntax.Less (Syntax.Int n1, e2) -> Syntax.Less (Syntax.Int n1, step e2)
+  | Syntax.Less (e1, e2) -> Syntax.Less (step e1, e2)
+  | Syntax.Greater (Syntax.Int n1, Syntax.Int n2) -> Syntax.Bool (n1 > n2)
+  | Syntax.Greater (Syntax.Int n1, e2) -> Syntax.Greater (Syntax.Int n1, step e2)
+  | Syntax.Greater (e1, e2) -> Syntax.Greater (step e1, e2)
+  | Syntax.IfThenElse (Syntax.Bool b, e1, e2) -> if b then e1 else e2
+  | Syntax.IfThenElse (e, e1, e2) -> Syntax.IfThenElse (step e, e1, e2)
+  | Syntax.Apply (Syntax.RecLambda (f, x, body) as func, arg) ->
+      begin match step_opt arg with
+      | Some arg' -> Syntax.Apply (func, arg')
+      | None ->
+          body
+          |> subst f func
+          |> subst x arg
+      end
+  | Syntax.Apply (Syntax.Lambda (x, body) as func, arg) ->
+      begin match step_opt arg with
+      | Some arg' -> Syntax.Apply (func, arg')
+      | None ->
+          body
+          |> subst x arg
+      end
+  | Syntax.Apply (e1, e2) -> Syntax.Apply (step e1, e2)
+and step_opt e =
+  try Some (step e) with Stop -> None
 
 let big_step e =
   let v = eval_exp [] e in
@@ -159,8 +142,8 @@ let big_step e =
 
 let rec small_step e =
   print_endline (Syntax.string_of_exp e);
-  match step e with
-  | None -> ()
+  match step_opt e with
   | Some e' ->
     print_endline "  -->";
     small_step e'
+  | None -> ()
