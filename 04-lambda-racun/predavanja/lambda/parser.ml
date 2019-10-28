@@ -142,7 +142,7 @@ let rec exp5 chrs =
     word "IN" >>
     spaces1 >>
     exp5 >>= fun e2 ->
-    return (Syntax.Apply (Syntax.Lambda (x, e2), e1))
+    return (Syntax.let_in (x, e1, e2))
   and let_rec_in =
     word "LET" >>
     spaces1 >>
@@ -159,7 +159,7 @@ let rec exp5 chrs =
     word "IN" >>
     spaces1 >>
     exp5 >>= fun e2 ->
-    return (Syntax.Apply (Syntax.Lambda (f, e2), (Syntax.RecLambda (f, x, e1))))
+    return (Syntax.let_rec_in (f, x, e1, e2))
   in
   one_of [if_then_else; lambda; rec_lambda; let_in; let_rec_in; exp4] chrs
 
