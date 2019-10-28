@@ -25,6 +25,6 @@ Primerjajte delovanje *CBV* in *CBN* na primerih:
 
 ## Naloga 3
 
-Razširite lambda račun s pari in seznami. Tako za pare kot za sezname dodajte tudi razgrajevalnik `match`.
+Razširite lambda račun s pari in seznami. Za pare dodajte projekciji na posamezno komponento, za sezname pa dodajte razgrajevalnik `match`.
 
-Kot dodaten izziv premislite, kako razširitev narediti v pristopu *CBN* in napišite funkcijo, ki zgradi neskončen seznam ničel.
+Kot dodaten izziv premislite, kako razširitve narediti v pristopu *CBN* in napišite funkcijo, ki zgradi neskončen seznam ničel.
