@@ -14,7 +14,7 @@ S semantiko malih korakov izračunajte zaporedje korakov, ki izračunajo vrednos
 
 ## Naloga 2
 
-Pristop *call-by-value* pri uporabi funkcije najprej izračuna vrednost argumenta in dobljeno vrednost substituira v telo funkcije. Pri pristopu *call-by-name* pa pri uporabi funkcije argument še neizračunan substituiramo v telo funkcije.
+Pristop *call-by-value* oz. *neučakano izvajanje* pri uporabi funkcije najprej izračuna vrednost argumenta in dobljeno vrednost substituira v telo funkcije. Pri pristopu *call-by-name* oz. *lenem izvajanju* pa pri uporabi funkcije argument še neizračunan substituiramo v telo funkcije.
 
 Popravite semantiko velikih in malih korakov iz *CBV* na *CBN* (v trenutnem lambda računu je potrebno spremeniti zgolj funkcije).
 
