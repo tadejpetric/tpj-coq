@@ -87,5 +87,5 @@ let big_step e =
 let rec small_step e =
   print_endline (S.string_of_exp e);
   if not (is_value e) then
-    (print_endline "  -->";
+    (print_endline "  ~>";
     small_step (step e))
