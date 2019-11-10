@@ -1,3 +1,6 @@
 _build
 *.byte
 *.native
+*.exe
+*.cmo
+*.cmi
