@@ -32,21 +32,4 @@ end list
 -- uporabljate konstruktorje brez predpone, torej `Empty` namesto
 -- `tree.Empty`.
 
-
--------------------------------------------------------------------------------
--- Definirajte nekaj konstruktov jezika IMP.
-
-inductive loc : Type
-| Loc : int -> loc
-
--- Ker v IMPu ločimo med različnimi vrstami termov, definiramo tip vrst
-inductive kind : Type
-| AExp | BExp | Comm
-
--- Tip 'term' sprejme še vrsto terma. Ukazi so tako tipa `term Comm`.
-inductive term : kind -> Type
-
-
-
-
 end hidden

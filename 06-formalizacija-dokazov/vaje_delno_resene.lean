@@ -99,40 +99,5 @@ begin
 end
 
 end tree
--------------------------------------------------------------------------------
--- Definirajte nekaj konstruktov jezika IMP.
 
-inductive loc : Type
-| Loc : int -> loc
-
--- Ker v IMPu ločimo med različnimi vrstami termov, definiramo tip vrst
-inductive kind : Type
-| AExp | BExp | Comm
-
-namespace kind
-
-
-inductive memory : Type
-| Null : memory
-| Cons : memory -> loc -> int -> memory
-
--- Tip 'term' sprejme še vrsto terma. Ukazi so tako tipa `term Comm`.
-inductive term : kind -> Type
-| Int : int -> term AExp
-| Plus : term AExp -> term AExp -> term AExp
-| Bool : bool -> term BExp
-| Eq : term AExp -> term AExp -> term BExp
-| Update : loc -> term AExp -> term Comm
-
--- theorem bullshit (t1 t2: term AExp) :
---   t1 = t2
--- :=
--- begin
---   cases t2,
-
--- end
-
-
-
-end kind
 end hidden
