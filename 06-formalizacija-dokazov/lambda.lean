@@ -54,7 +54,58 @@ inductive of : ctx -> tm -> ty -> Prop
 | lam {Γ x M A B} : of (ctx.cons x A Γ) M B -> of Γ (tm.lam x M) (ty.arrow A B)
 | if_then_else {Γ M N1 N2 A} : of Γ M ty.bool -> of Γ N1 A -> of Γ N2 A -> of Γ (tm.if_then_else M N1 N2) A
 
-theorem substitution (Γ x A M M' A') : of Γ M A -> of (ctx.cons x A Γ) M' A' -> of Γ (subst x M M') A' := sorry
+theorem substitution (Γ x A M M' A') : of Γ M A -> of (ctx.cons x A Γ) M' A' -> of Γ (subst x M M') A' :=
+begin
+  intros H,
+  generalize ctx_cons : (ctx.cons x A Γ) = Γ',
+  intros H',
+  induction H',
+  case of.var {
+      rewrite <- ctx_cons at H'_a,
+      unfold subst,
+      cases H'_a,
+      case lookup.here {
+        simp,
+        assumption
+      },
+      case lookup.there {
+        by_cases (x = H'_x),
+          have H := (ne.symm H'_a_a), contradiction,
+          simp [h], apply of.var, assumption
+      }
+  },
+  case of.unit {
+      unfold subst,
+      apply of.unit
+  },
+  case of.true {
+      unfold subst,
+      apply of.true
+  },
+  case of.false {
+      unfold subst,
+      apply of.false
+  },
+  case of.app {
+      unfold subst,
+      apply of.app,
+      apply H'_ih_a ctx_cons,
+      apply H'_ih_a_1 ctx_cons,
+  },
+  case of.if_then_else {
+      unfold subst,
+      apply of.if_then_else,
+      apply H'_ih_a ctx_cons,
+      apply H'_ih_a_1 ctx_cons,
+      apply H'_ih_a_2 ctx_cons,
+  },
+  case of.lam {
+      unfold subst,
+      by_cases (x = H'_x),
+        simp [h], apply of.lam, sorry,
+        simp [h], apply of.lam, sorry,
+  },
+end
 
 theorem preservation (Γ M M') : step M M' -> forall A, of Γ M A -> of Γ M' A :=
 begin
