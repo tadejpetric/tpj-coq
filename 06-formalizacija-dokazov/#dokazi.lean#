@@ -35,7 +35,7 @@ theorem or_comm'' : ∀ p q, p ∨ q -> q ∨ p := begin
 end
 
 #print or_comm''
-
+  
 theorem or_comm''' : forall p q, p ∨ q -> q ∨ p := begin
   intros,
   cases a,
@@ -45,70 +45,37 @@ end
 
 -- (P => Q) /\ P => Q
 
--- P /\ Q => Q /\ P
-theorem t2: forall p q, p ∧ q -> q ∧ p :=
+theorem t1 : forall p q : Prop, ((p -> q) ∧ p) -> q :=
 begin
   intros,
   cases a,
-  show  q ∧ p, from and.intro a_right a_left,
-  --and.intro (and.right a_left) (and.left a_right),
+  apply a_left a_right,
 end
 
-theorem orintroleft : forall p q: Prop, p -> (p ∨ q) :=
+-- P /\ Q => Q /\ P
+
+theorem t2 : forall p q, p ∧ q -> q ∧ p :=
 begin
   intros,
-  show p ∨ q, from or.intro_left q a,
-end
-theorem orintroright : forall p q: Prop, p -> (q ∨ p) :=
-begin
-  intros,
-  show q ∨ p, from or.intro_right q a,
+  cases a,
+  show q ∧ p,
+  from and.intro a_right a_left,
 end
 
 -- (P \/ Q) /\ R => (P /\ R) \/ (Q /\ R)
-theorem t3 : forall p q r, (p ∨ q) ∧ r -> (p ∧ r) ∨ (q ∧ r) := 
+
+theorem t3 : forall p q r, (p ∧ q) ∨ r -> (p ∨ r) ∧ (q ∨ r) :=
 begin
-  intros,
-  cases a,
-  cases a_left,
+  --intros,
+  --intro r,
+  --cases a,
   case or.inl {
-    apply orintroleft,
-    show p ∧ r, from and.intro a_left a_right,
-  },
-  case or.inr {
-    apply orintroright,
-    exact and.intro a_left a_right,
+    cases a,
+    ( assume hr : r, show q ∨ r,
   }
 end
 -- (P /\ Q) \/ R => (P \/ R) /\ (Q \/ R)
 
 -- (P => R) => (Q => R) <=> ((P \/ Q) => R)
--- r = ⊥    p = ⊤   q = ⊤ 
--- a : ⊥ → (q → r),
--- a_1 : p
-
-theorem t5 : forall p q r : Prop, (p -> r) -> ((q -> r) ↔ ((p ∨ q) -> r)) := 
-begin
-  intros,
-  apply iff.intro,
-  {
-    intros,
-    cases a_2,
-    case or.inl {
-      apply a,
-      assumption,
-    },
-    case or.inr {
-      apply a_1,
-      assumption,
-    },
-  },
-  {
-    intros,
-    apply a_1,
-    apply orintroright,
-    assumption,
-  }
-end
 
 -- P \/ Q => P /\ Q
