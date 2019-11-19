@@ -15,14 +15,15 @@ inductive bexp : Type
 | Bool : bool -> bexp
 | Equal : aexp -> aexp -> bexp
 | Less : aexp -> aexp -> bexp
+| Greater : aexp -> aexp -> bexp
 
 
 inductive cmd : Type
 | Assign : loc -> aexp -> cmd
-| IfThenElse : bexp -> cmd -> cmd -> cmd 
-| Seq : cmd -> cmd -> cmd 
-| Skip : cmd 
-| WhileDo : bexp -> cmd -> cmd 
+| IfThenElse  : bexp -> cmd -> cmd -> cmd
+| Seq : cmd -> cmd -> cmd
+| Skip : cmd
+| WhileDo : bexp -> cmd -> cmd
 
 -- ================== Example 'fact.imp' in LEAN notation. ==================
 
@@ -30,9 +31,11 @@ def fact : cmd :=
   cmd.Seq
     (cmd.Seq
       (cmd.Assign "n" (aexp.Int 10))
-      (cmd.Assign "fact" (aexp.Int 1)) )
+      (cmd.Assign "fact" (aexp.Int 10)) )
     (cmd.WhileDo
-      (bexp.Less (aexp.Int 0) (aexp.Lookup "n"))
+      (bexp.Greater
+        (aexp.Lookup "n")
+        (aexp.Int 0) )
       (cmd.Seq
         (cmd.Assign "fact" 
           (aexp.Times (aexp.Lookup "fact") (aexp.Lookup "n")) )
@@ -59,20 +62,20 @@ inductive aeval : env -> aexp -> int -> Prop
 | Lookup {E loc i} :
     lookup loc E i -> 
     aeval E (aexp.Lookup loc) i
-| Int {E i}:
+| Int {E i} :
     aeval E (aexp.Int i) i
-| Plus {E a1 i1 a2 i2}:
+| Plus {E a1 a2 i1 i2} :
     aeval E a1 i1 -> aeval E a2 i2 ->
     aeval E (aexp.Plus a1 a2) (i1 + i2)
-| Minus {E a1 i1 a2 i2}:
+| Minus {E a1 a2 i1 i2} :
     aeval E a1 i1 -> aeval E a2 i2 ->
     aeval E (aexp.Minus a1 a2) (i1 - i2)
-| Times {E a1 i1 a2 i2}:
+| Times {E a1 a2 i1 i2} :
     aeval E a1 i1 -> aeval E a2 i2 ->
     aeval E (aexp.Times a1 a2) (i1 * i2)
 
 
--- Lean works best with '<' and '≤' so we use them instead of '>' and '≥'.
+-- Lean works best with '<' and '≤' so we use them to encode '>' and '≥'.
 inductive beval : env -> bexp -> bool -> Prop
 | Bool {E b} :
     beval E (bexp.Bool b) b
@@ -88,29 +91,35 @@ inductive beval : env -> bexp -> bool -> Prop
 | Less_f {E a1 a2 i1 i2}:
     aeval E a1 i1 -> aeval E a2 i2 -> ¬ i1 < i2 ->
     beval E (bexp.Less a1 a2) false
+| Greater_t {E a1 a2 i1 i2}:
+    aeval E a1 i1 -> aeval E a2 i2 -> ¬ i1 ≤ i2 ->
+    beval E (bexp.Greater a1 a2) true
+| Greater_f {E a1 a2 i1 i2}:
+    aeval E a1 i1 -> aeval E a2 i2 -> i1 ≤ i2 ->
+    beval E (bexp.Greater a1 a2) false
 
 
 inductive ceval : env -> cmd -> env -> Prop
-| Assign {E a i l}:
+| Assign {loc a i E} :
     aeval E a i ->
-    ceval E (cmd.Assign l a) (env.Cons l i E)
-| IfThenElse_t {E b c1 c2 E'} :
-    beval E b true -> ceval E c1 E' ->
-    ceval E (cmd.IfThenElse b c1 c2) E'
+    ceval E (cmd.Assign loc a) (env.Cons loc i E)
+| IfThenElse_t {E b c1 c2 M'} :
+    beval E b true -> ceval E c1 M' ->
+    ceval E (cmd.IfThenElse b c1 c2) M'
 | IfThenElse_f {E b c1 c2 E'} :
-    beval E b false ->ceval E c2 E' ->
+    beval E b false -> ceval E c2 E' ->
     ceval E (cmd.IfThenElse b c1 c2) E'
-| Seq {c1 c2 E E' E''}:
+| Seq {E c1 E' c2 E''} :
     ceval E c1 E' -> ceval E' c2 E'' ->
     ceval E (cmd.Seq c1 c2) E''
 | Skip {E} :
     ceval E cmd.Skip E
-| WhileDo_t {E b c E' E''}:
+| WhileDo_t {E b c E' E''} :
     beval E b true -> ceval E c E' ->
     ceval E' (cmd.WhileDo b c) E'' ->
     ceval E (cmd.WhileDo b c) E''
-| WhileDo_f {E b c}:
-    beval E b false ->
+| WhileDo_f {E b c} :
+    beval E b false -> 
     ceval E (cmd.WhileDo b c) E
 
 -- ==================== Safety ====================
@@ -130,8 +139,10 @@ inductive loc_safe : loc -> locs -> Prop
 
 
 inductive asafe : locs -> aexp -> Prop
--- | Lookup 
--- | Int
+| Lookup {L loc}:
+    loc_safe loc L -> asafe L (aexp.Lookup loc)
+| Int {L i}:
+    asafe L (aexp.Int i)
 | Plus {L a1 a2} :
     asafe L a1 -> asafe L a2 ->
     asafe L (aexp.Plus a1 a2)
@@ -144,23 +155,38 @@ inductive asafe : locs -> aexp -> Prop
 
 
 inductive bsafe : locs -> bexp -> Prop
--- | Bool
--- | Equal
--- | Less
+| Bool {L b} :
+    bsafe L (bexp.Bool b)
+| Equal {L a1 a2} :
+    asafe L a1 -> asafe L a2 ->
+    bsafe L (bexp.Equal a1 a2)
+| Less {L a1 a2} :
+    asafe L a1 -> asafe L a2 ->
+    bsafe L (bexp.Less a1 a2)
+| Greater {L a1 a2} :
+    asafe L a1 -> asafe L a2 ->
+    bsafe L (bexp.Greater a1 a2)
+
 
 inductive csafe : locs -> cmd -> locs -> Prop
--- | Assign {L loc a} :
-
--- | IfThenElse SKIP THIS CONSTRUCT
--- Note: This part requires a definition of locs intersection.
-
--- | Seq
--- | Skip
--- | WhileDo
+| Assign {L loc a} :
+    asafe L a ->
+    csafe L (cmd.Assign loc a) (locs.Cons loc L)
+-- | IfThenElse {L b c1 c2} :
+--     bsafe L b -> csafe L c1 L' -> csafe L c2 L'' ->
+-- Note: This part requires a definition of locs intersection. 
+| Seq {L c1 L' c2 L''} :
+    csafe L c1 L' -> csafe L' c2 L'' ->
+    csafe L (cmd.Seq c1 c2) L''
+| Skip {L} :
+    csafe L cmd.Skip L
+| WhileDo {L b c L'} :
+    bsafe L b -> csafe L c L' ->
+    csafe L (cmd.WhileDo b c) L'
 
 -- ==================== Auxiliary safety for lookup ====================
 
--- Ensures that the given environment maps all the required locations.
+-- Proves that the given environment maps all the required locations.
 inductive env_maps : env -> locs -> Prop
 | Nil {E} :
     env_maps E locs.Nil
@@ -175,18 +201,13 @@ theorem env_maps_weaken {E L loc i}:
 :=
 begin
   intro es, induction es with E' loc' E' L' maps finds ih,
-  case env_maps.Nil
-    { sorry },
-  case env_maps.Cons
-    { apply env_maps.Cons, assumption,
-      -- we compare the the strings to know which lookup result is correct
-      cases string.has_decidable_eq loc' loc with neq eq,
-      { cases finds with i', existsi i',
-        -- lookup must search deeper 
-        sorry },
-      existsi i, 
-      -- loc' and loc are equal, 'subst eq' will rewrite them to the same name.
-      sorry,
+  apply env_maps.Nil,
+  apply env_maps.Cons, assumption,
+  -- we compare the the strings to know which lookup result is correct
+  cases string.has_decidable_eq loc' loc with neq eq,
+  { cases finds with i', existsi i',
+    apply lookup.Search, assumption, assumption, },
+  existsi i, subst eq, apply lookup.Find,
 end
 
 
@@ -196,9 +217,10 @@ theorem safe_lookup {L E loc}:
   loc_safe loc L -> env_maps E L -> ∃ (i:int), lookup loc E i
 :=
 begin
-  -- if we have an impossible hypothesis 'h' (such as a safety check in
-  -- an empty locs list) we can complete the proof with 'cases h'
-  sorry
+  intros sloc es, 
+  induction es with E' loc' E' L' maps finds ih,
+  { cases sloc, },
+  cases sloc, assumption, apply ih, assumption,
 end
 
 -- ==================== Safety theorems ====================
@@ -210,19 +232,25 @@ begin
   intros s es,
   induction s,
   case asafe.Lookup
-    { cases safe_lookup s_a es with i, 
-    -- cases safe_lookup ... applies the theorem and eliminates the ∃ 
-      existsi i, apply aeval.Lookup, assumption, },
+    { cases safe_lookup s_a es,
+      existsi w, apply aeval.Lookup, assumption, },
   case asafe.Int
-    { sorry },
+    { existsi s_i, apply aeval.Int, },
   case asafe.Plus
     { cases s_ih_a es with i1,
       cases s_ih_a_1 es with i2,
-      sorry },
+      existsi (i1+i2), apply aeval.Plus, 
+      assumption, assumption },
   case asafe.Minus
-    { sorry },
+    { cases s_ih_a es with i1,
+      cases s_ih_a_1 es with i2,
+      existsi (i1-i2), apply aeval.Minus, 
+      assumption, assumption },
   case asafe.Times
-    { sorry },
+    { cases s_ih_a es with i1,
+      cases s_ih_a_1 es with i2,
+      existsi (i1*i2), apply aeval.Times, 
+      assumption, assumption },
 end
 
 
@@ -238,20 +266,32 @@ begin
     { cases asafety s_a es with i1,
       cases asafety s_a_1 es with i2,
       cases int.decidable_eq i1 i2 with neq eq,
-      -- we cannot just do a case analysis on logical formulas because
-      -- we are not using classical logic. Luckily integer equality is
-      -- decidable, so we can specify to do a case analysis on that
       -- i1 ≠ i2
-      { sorry },
+      { existsi (false:bool), apply beval.Equal_f,
+        assumption, assumption, assumption,},
       -- i1 = i2
-      { sorry }, },
+      { existsi (true:bool), apply beval.Equal_t,
+        assumption, assumption, assumption,}, },
   case bsafe.Less
-    { sorry,
+    { cases asafety s_a es with i1,
+      cases asafety s_a_1 es with i2,
       cases int.decidable_lt i1 i2 with neq eq,
       -- i1 ≰ i2
-      { sorry },
+      { existsi (false:bool), apply beval.Less_f,
+        assumption, assumption, assumption,},
       -- i1 < i2
-      { sorry }, },
+      { existsi (true:bool), apply beval.Less_t,
+        assumption, assumption, assumption,}, },
+  case bsafe.Greater
+    { cases asafety s_a es with i1,
+      cases asafety s_a_1 es with i2,
+      cases int.decidable_le i1 i2 with neq eq,
+      -- i > i2
+      { existsi (true:bool), apply beval.Greater_t,
+        assumption, assumption, assumption,},
+      -- i ≱ i2
+      { existsi (false:bool), apply beval.Greater_f,
+        assumption, assumption, assumption,}, },
 end
 
 
@@ -259,20 +299,39 @@ theorem csafety {L L' E c }:
   csafe L c L' -> env_maps E L -> ∃ (E':env), ceval E c E' ∧ env_maps E' L'
 :=
 begin
-  -- constructor splits ∧ into two subgoals
-  intros s, revert E, -- we revert to obtain a stronger induction
+  intros s, revert E,
   induction s; intros E es,
   case csafe.Assign
     { cases asafety s_a_1 es with i,
       existsi (env.Cons s_loc i E),
-      constructor, -- constructor splits ∧ into two subgoals
-      { sorry },
-      sorry },
+      constructor,
+      { apply ceval.Assign, assumption, },
+      apply env_maps.Cons,
+      { apply env_maps_weaken, assumption, },
+      existsi i, apply lookup.Find, },
   case csafe.Seq
-    { sorry },
+    { cases (s_ih_a es) with E',
+      destruct h, intros c1s es',
+      cases (s_ih_a_1 es') with E'',
+      destruct h_1, intros c2s es'',
+      existsi E'', constructor,
+      { apply ceval.Seq, assumption, assumption, },
+      assumption, },
   case csafe.Skip
-    { sorry },
+    { existsi E, constructor, apply ceval.Skip, assumption, },
   case csafe.WhileDo
-    { -- this part can't really be done in big step semantics
-      sorry },
+    { 
+      -- this part can't really be done in big step semantics
+      cases (s_ih es) with E',
+      destruct h, intros csafe es',
+      cases bsafety s_a es,
+      cases w,
+      { existsi E, constructor,
+        apply ceval.WhileDo_f,
+        assumption, sorry, },
+      { existsi E', constructor,
+        apply ceval.WhileDo_t,
+        assumption, assumption, 
+        sorry, sorry, } 
+      },
 end
