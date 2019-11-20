@@ -70,3 +70,49 @@ Proof.
     right.
     apply muf_in_conj; assumption.
 Qed.
+
+(* (P /\ Q) \/ R => (P \/ R) /\ (Q \/ R) *)
+Theorem dist' : forall P Q R, muf_ali ( muf_in P Q) R -> muf_in (muf_ali P R) (muf_ali Q R).
+Proof.
+  destruct 1.
+  - destruct H as [HP HQ].
+    apply muf_in_conj.
+    apply muf_ali_inl.
+    assumption.
+    apply muf_ali_inl.
+    assumption.
+  - apply muf_in_conj.
+    apply muf_ali_inr.
+    assumption.
+    apply muf_ali_inr.
+    assumption.
+Qed.
+
+
+(* (P => R) /\ (Q => R) <=> ((P \/ Q) => R) *)
+Theorem t4 : forall P Q R: Prop, muf_in (P -> R) (Q -> R) <-> ((muf_ali P Q) -> R).
+Proof.
+  split.
+  - intros.
+    destruct H.
+    destruct H0.
+    + apply H.
+      assumption.
+    + apply H1.
+      assumption.
+  - split.
+    + intros HP.
+      apply H.
+      exact (muf_ali_inl HP).
+    + intros HQ.
+      apply H.
+      exact (muf_ali_inr HQ).
+Qed.
+
+
+Theorem sad : forall P Q: Prop, muf_in P Q -> muf_ali P Q.
+Proof.
+  intros.
+  right.
+  apply H.
+Qed.
