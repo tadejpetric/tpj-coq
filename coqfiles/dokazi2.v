@@ -49,6 +49,14 @@ Proof.
   exact H.
 Qed.
 
+(* (P => Q) /\ P => Q *)
+Theorem modus_ponens : forall P Q : Prop, muf_in (P -> Q) P -> Q.
+Proof.
+  destruct 1 as [H HP].
+  apply H.
+  assumption.
+Qed.
+
 (* (P \/ Q) /\ R => (P /\ R) \/ (Q /\ R) *)
 Theorem t3 : forall p q r, muf_in (muf_ali p q) r -> muf_ali (muf_in p r) (muf_in q r).
 Proof.
