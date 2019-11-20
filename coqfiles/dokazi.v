@@ -42,3 +42,56 @@ Proof.
     exact (conj H proof_r).
 Qed.
 
+Theorem distribute_or : forall p q r : Prop, (p /\ q) \/ r -> (p \/ r) /\ (q \/ r).
+Proof.
+  intros.
+  destruct H.
+  - destruct H as [proof_p proof_q].
+    split.
+    {
+      left.
+      exact proof_p.
+    }
+    {
+      left.
+      exact proof_q.
+    }
+  - split.
+    exact (or_intror H).
+    exact (or_intror H).
+Qed.
+
+Theorem and_or_impl : forall p q r : Prop, ((p -> r) /\ (q -> r)) <-> (p \/ q -> r).
+Proof.
+  intros.
+  unfold iff.
+  split.
+  {
+    intros.
+    destruct H as [leva desna].
+    case H0.
+    - intros.
+      apply leva.
+      exact H.
+    - intros.
+      apply desna.
+      exact H.
+  }
+  {
+    intros.
+    split.
+    - intros.
+      apply H.
+      exact (or_introl H0).
+    - intros.
+      apply H.
+      exact (or_intror H0).
+  }
+Qed.
+
+Theorem and_or_impl' : forall p q r : Prop, ((p -> r) /\ (q -> r)) <-> (p \/ q -> r).
+Proof.
+  firstorder.
+Qed.
+
+
