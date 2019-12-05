@@ -32,6 +32,48 @@ Proof.
   }
 Qed.
 
+
+Lemma plus_succ : forall n m, nasl (plus n m) = plus n (nasl m).
+Proof.
+  intros.
+  induction n.
+  simpl.
+  auto.
+  simpl.
+  f_equal.
+  exact IHn.
+Qed.
+
+  
+Theorem plus_comm : forall m n, plus m n = plus n m.
+Proof.
+  intros.
+  induction m.
+  {
+    simpl.
+    induction n.    
+    auto.
+    simpl.
+    f_equal.
+    exact IHn.
+  }
+  {
+    simpl.
+    induction n.
+    - simpl.
+      f_equal.
+      rewrite IHm.
+      simpl.
+      tauto.
+    - simpl.
+      f_equal.
+      rewrite IHm.
+      simpl.  
+      apply plus_succ.
+  }
+Qed.
+
+        
 Inductive je_sodo : naravno -> Prop :=
 | Enic : je_sodo nic
 | Enasl_nasl n : je_sodo n -> je_sodo (nasl (nasl n)).
@@ -98,12 +140,9 @@ Proof.
   intro.
   destruct H.
   induction x.
-  - 
-
-
-
-
-
+  inversion H.
+  inversion H.
+Qed.
 
   
 Theorem manj_enako_refl : forall m, manj_enako m m.
@@ -130,5 +169,16 @@ Proof.
     - intros.
       apply nic.
     - intros.
-      
-      
+      inversion H.
+  }
+  admit.
+Admitted.
+
+Theorem manj_enako_trans' : forall p q r, (manj_enako' p q /\ manj_enako' q r) -> manj_enako' q r.
+Proof.
+  intros.
+  destruct H as [leva desna].
+  induction leva.
+  exact desna.
+  exact desna.
+Qed.
