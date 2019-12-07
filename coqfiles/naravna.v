@@ -144,6 +144,13 @@ Proof.
   inversion H.
 Qed.
 
+Lemma nic_nima_prednika' : forall m, not (manj_enako' (nar.nasl m) nar.nic).
+Proof.
+  intro.
+  unfold not.
+  intros.
+  inversion H.
+Qed.
   
 Theorem manj_enako_refl : forall m, manj_enako m m.
 Proof.
@@ -174,11 +181,149 @@ Proof.
   admit.
 Admitted.
 
-Theorem manj_enako_trans' : forall p q r, (manj_enako' p q /\ manj_enako' q r) -> manj_enako' q r.
+
+Lemma manj'_ohranja_predhodnike : forall m n, manj_enako' m n -> manj_enako' (nar.nasl m) (nar.nasl n).
+Proof.
+  intros.
+  induction m.
+  apply nasl' in H.
+  admit.
+Admitted.
+
+Lemma nic_najmanjsa : forall n, manj_enako' nar.nic n.
+Proof.
+  induction n.
+  apply refl'.
+  apply nasl'.
+  exact IHn.
+Qed.
+  
+Lemma manj'_ohranja_naslednjike : forall m n, manj_enako' (nar.nasl m) (nar.nasl n) -> manj_enako' m n.
+Proof.
+  intros.
+  induction n.
+  destruct m.
+  apply refl'.
+  admit.
+Admitted.
+
+
+Theorem manj_enako_trans' : forall p q r, (manj_enako' p q /\ manj_enako' q r) -> manj_enako' p r.
 Proof.
   intros.
   destruct H as [leva desna].
   induction leva.
   exact desna.
-  exact desna.
+  apply IHleva.
+  induction r.
+  inversion desna.
+  apply nasl'.
+  apply manj'_ohranja_naslednjike.
+  assumption.
 Qed.
+End ineq.
+
+Module davorin.
+
+Definition leq (m n : nar.naravno) := exists x : nar.naravno, nar.plus m x = n.
+
+Theorem leq_refl : forall m, leq m m.
+Proof.
+  intros.
+  unfold leq.
+  apply ex_intro with nar.nic.
+  apply nar.plus_comm.
+Qed.
+
+Theorem leq_trans : forall q p r, (leq q p /\ leq p r) -> leq q r.
+Proof.
+  intros.
+  destruct H as [left right].
+  unfold leq.
+  unfold leq in left, right.
+  elim left.
+  intros.
+  elim right.
+  intros.
+  apply ex_intro with (nar.plus x x0).
+  symmetry in H0.
+  rewrite H0.
+  symmetry in H.
+  rewrite H.
+  symmetry.
+  apply nar.plus_assoc.
+Qed.
+
+Lemma zero_is_neutral : forall n, n = nar.plus n nar.nic.
+Proof.
+  intros.
+  rewrite nar.plus_comm.
+  simpl.
+  tauto.
+Qed.
+
+Lemma add_both_sides : forall n m p, n = m -> nar.plus p n = nar.plus p m.
+Proof.
+  intros.
+  f_equal.
+  assumption.
+Qed.
+
+  
+Lemma weaker_cancelling : forall n p m, nar.plus (nar.nasl p) n = nar.plus (nar.nasl p) m -> nar.plus p n = nar.plus p m.
+Proof.
+  intros.
+  apply f_equal2.
+  reflexivity.
+  
+Admitted.
+
+
+Lemma cancelling_rule : forall n m p, nar.plus p n = nar.plus p m -> n = m.
+Proof.
+  intros.
+  induction p.
+  rewrite zero_is_neutral.
+  pattern n.
+  rewrite zero_is_neutral.
+  rewrite nar.plus_comm.
+  rewrite H.
+  rewrite nar.plus_comm.
+  tauto.
+  apply IHp.
+  admit.
+Admitted.
+
+
+Theorem leq_antisym : forall p q, leq p q /\ leq q p -> p = q.
+Proof.
+  intros.
+  destruct H as [lefty righty].
+  unfold leq in lefty, righty.
+  elim lefty. elim righty.
+  repeat intros.
+  symmetry in H,  H0.
+  rewrite H, H0.
+  rewrite H0 in H.
+  assert (sum_is_zero : nar.nic = nar.plus x0 x).
+  {
+    rewrite nar.plus_assoc in H.
+    pattern p at 1 in H.
+    rewrite zero_is_neutral in H.
+    apply add_both_sides.
+
+
+
+    
+  assert (newx : x0= nar.plus x0 nar.nic).
+  {
+    rewrite nar.plus_comm.
+    simpl.
+    tauto.
+  }
+  rewrite nar.plus_assoc.
+  f_equal.
+  pattern x0 at 2. rewrite newx.
+  f_equal.
+  simpl.
+End davorin.
