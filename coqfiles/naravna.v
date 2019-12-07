@@ -269,36 +269,12 @@ Proof.
   assumption.
 Qed.
 
-  
-Lemma weaker_cancelling : forall n p m, nar.plus (nar.nasl p) n = nar.plus (nar.nasl p) m -> nar.plus p n = nar.plus p m.
-Proof.
-  intros.
-  apply f_equal2.
-  reflexivity.
-  
-Admitted.
-
-
-Lemma cancelling_rule : forall n m p, nar.plus p n = nar.plus p m -> n = m.
-Proof.
-  intros.
-  induction p.
-  rewrite zero_is_neutral.
-  pattern n.
-  rewrite zero_is_neutral.
-  rewrite nar.plus_comm.
-  rewrite H.
-  rewrite nar.plus_comm.
-  tauto.
-  apply IHp.
-  admit.
-Admitted.
-
 
 Theorem leq_antisym : forall p q, leq p q /\ leq q p -> p = q.
 Proof.
   intros.
   destruct H as [lefty righty].
+  apply leq_trans
   unfold leq in lefty, righty.
   elim lefty. elim righty.
   repeat intros.
@@ -310,9 +286,8 @@ Proof.
     rewrite nar.plus_assoc in H.
     pattern p at 1 in H.
     rewrite zero_is_neutral in H.
-    apply add_both_sides.
-
-
+    induction p.
+    
 
     
   assert (newx : x0= nar.plus x0 nar.nic).
