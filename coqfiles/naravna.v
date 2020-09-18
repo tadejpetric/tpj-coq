@@ -1,7 +1,22 @@
+(*
+prej smo uporabljali le tip Prop, propositions
+lahko pa ustvarimo svoje tipe!
+V tej datoteki ustvarimo tip naravnih števil in nekaj osnovnih operacij na njih
+
+Module nar. samo pove, da tukaj definiramo naravna števila, ni pomembno
+*)
+
 Module nar.
+(*
+naravna števila so tipičen primer induktivnega tipa
+imajo prvi element (nič)
+in imajo funkcijo naslednjika
+tako definiramo naravna števila v coqu
+*)
 Inductive naravno : Type :=
 | nic : naravno
 | nasl : naravno -> naravno.
+(* tukaj -> predstavlja funkcijo *)
 
 Theorem niso_vsa_naravna_nic : not (forall n: naravno, n = nic).
 Proof.
@@ -10,19 +25,34 @@ Proof.
   discriminate H.
 Qed.
 
+(* fixpoint pomeni funkcija (razlog je da se funkcije formalno definira kot fiksna točka
+neke drugačne funkcije, ni pomembno) *)
 Fixpoint plus (n m : naravno) : naravno :=
   match n with
-  | nic => m
-  | nasl(x) => nasl(plus x m)
+  | nic => m (* 0 + m = m *)
+  | nasl(x) => nasl(plus x m) (* (1+x) + n = 1+ (x+n) *)
   end.
 
-
+(* dokažemo, da je + asociativen *)
 Theorem plus_assoc : forall n m k: naravno, plus (plus n m) k = plus n (plus m k).
 Proof.
   intros.
+  (* dokažemo s indukcijo na n*)
   induction n.
   {
+    (* lahko bi napisali -, tako kot v prejšnji datoteki. Najprej primer n=0 *)
+    (* Coq pove
+        m, k : naravno
+        ============================
+        plus (plus nic m) k = plus nic (plus m k)
+     *)
     simpl.
+    (* simpl lahko uporbi definicijo + da najde 0+a = a *)
+    (* Coq pove
+       m, k : naravno
+       ============================
+       plus m k = plus m k
+     *)
     reflexivity.
   }
   {
@@ -32,7 +62,7 @@ Proof.
   }
 Qed.
 
-
+(* dokaz 1 + (n + m) = n + (1 + m) *)
 Lemma plus_succ : forall n m, nasl (plus n m) = plus n (nasl m).
 Proof.
   intros.
@@ -73,7 +103,7 @@ Proof.
   }
 Qed.
 
-        
+(* definiramo tip sodih števil. Število je sodo če je nič, ali pa če je 2+sodo*)        
 Inductive je_sodo : naravno -> Prop :=
 | Enic : je_sodo nic
 | Enasl_nasl n : je_sodo n -> je_sodo (nasl (nasl n)).
@@ -87,6 +117,7 @@ Proof.
   apply Enic.
 Qed.
 
+(* dokaz, da je vsota sodih soda *)
 Theorem sodo_plus_sodo : forall m n, je_sodo m -> je_sodo n -> je_sodo (plus m n).
 Proof.
   intros.
@@ -102,8 +133,26 @@ Proof.
   }
 Qed.
 End nar.
+(* note: povsod sem pisal (plus n m) ampak če ne bi bil len bi lahko definiral nov operator
+potem bi lahko pisal (n + m) kot v normalni matematiki (ampak takrat še nisem znal tega v Coq) *)
+(* zdaj smo končali modul naravnih števil, če želimo uporabljati karkoli iz tam, pišemo nar.izrek *)
 
 Module ineq.
+(*
+dve definiciji operatorja <=
+
+1)
+0 <= vse
+n<=m če n+1 <= m+1
+
+2)
+m <= m
+m <= n če m <= n+1
+
+Kdaj je lažje uporabljati kakšno definicijo, kdaj drugo! To je zelo pomembno pri formalizaciji
+kdaj si olajšamo dokaz 300% samo da izberemo drugo definicijo
+*)
+  
 Inductive manj_enako : nar.naravno -> nar.naravno -> Prop :=
 | nic : forall m, manj_enako nar.nic m
 | nasl : forall m n,  manj_enako m n -> manj_enako (nar.nasl m) (nar.nasl n).
@@ -112,6 +161,7 @@ Inductive manj_enako' : nar.naravno -> nar.naravno -> Prop :=
 | refl' : forall m, manj_enako' m m
 | nasl' : forall m n, manj_enako' m n -> manj_enako' m (nar.nasl n).
 
+(* Toy dokaz da m <= m+1 *)
 Lemma leq_do_nasl : forall m, manj_enako m (nar.nasl m).
 Proof.
   intros.  
@@ -144,6 +194,7 @@ Proof.
   inversion H.
 Qed.
 
+(* negacija ~p je definirana kot p -> false *)
 Lemma nic_nima_prednika' : forall m, not (manj_enako' (nar.nasl m) nar.nic).
 Proof.
   intro.
@@ -178,6 +229,10 @@ Proof.
     - intros.
       inversion H.
   }
+  (* če ne znamo dokaza, napišemo admit. Pomeni, da se predamo. Potem Coq dovoli, da to trditev
+   uporabimo v ostalih dokazih (ampak zmeraj naredi opozorilo da uporabljaš nedokazane trditve)
+   je tudi uporabno za strukturirano pisanje dokazov. razdeliš na veliko malih delov in dolker niso dokončani
+napišeš admit v njih (lahko jih pa uporabiš v večjem) *)
   admit.
 Admitted.
 
@@ -223,7 +278,14 @@ Proof.
 Qed.
 End ineq.
 
+(* tukaj sem se predal s tistimi definicijami <= in uporabil neko, ki mi je davorin predlagal lol
+potem so dokazi zelo lažji *)
 Module davorin.
+
+(* neinduktivna definicija <= 
+
+a <= b če lahko a prištejemo neko naravno število in dobimo b 
+ *)
 
 Definition leq (m n : nar.naravno) := exists x : nar.naravno, nar.plus m x = n.
 
@@ -270,13 +332,14 @@ Proof.
 Qed.
 
 
+(* še nedokončan od zadnjič, ignore *)
 Theorem leq_antisym : forall p q, leq p q /\ leq q p -> p = q.
 Proof.
   intros.
   destruct H as [lefty righty].
-  apply leq_trans
   unfold leq in lefty, righty.
-  elim lefty. elim righty.
+  elim lefty.
+  elim righty.
   repeat intros.
   symmetry in H,  H0.
   rewrite H, H0.
@@ -296,9 +359,6 @@ Proof.
     simpl.
     tauto.
   }
-  rewrite nar.plus_assoc.
-  f_equal.
-  pattern x0 at 2. rewrite newx.
-  f_equal.
-  simpl.
+  admit.
+Admitted.
 End davorin.

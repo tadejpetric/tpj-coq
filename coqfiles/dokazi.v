@@ -6,10 +6,10 @@
 Theorem or_comm : forall p q, p \/ q -> q \/ p.
 Proof.
   (* dokazujemo implikacijo H => G
-   torej predpostavimo H*)
+   torej predpostavimo H *)
   intros.
   (* V predpostavkah drži (p ali q). Torej ali drži p, ali q 
-   cases loči na te primere*)
+   cases loči na te primere *)
   case H.
   (* alineje strukturirano povejo v katirem delu koraka smo. Namesto njih so 
      tudi * ali pa {} *)
